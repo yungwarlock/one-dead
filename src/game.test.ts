@@ -1,4 +1,4 @@
-import {calculateGame, Prediction} from "./game";
+import {calculateGame} from "./game";
 
 
 describe("Game algorithm", () => {
