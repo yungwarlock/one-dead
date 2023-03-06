@@ -29,12 +29,6 @@ export interface SessionInfo {
 const peerConnectionConfig = {
 };
 
-declare global {
-  interface Window {
-    session: Session;
-  }
-}
-
 
 class Session {
   private readonly channelName = "game-channel";
@@ -61,7 +55,6 @@ class Session {
     this.iceCandidateRef = ref(database, `${this.dbRefPrefix}/${sessionId}/rtcInfo/iceCandidates`);
 
     this.listenForIceCandidates();
-    window.session = this;
   }
 
   private async listenForIceCandidates() {
@@ -104,7 +97,6 @@ class Session {
 
   private createDataChannel(): RTCDataChannel {
     const dc = this.rtcPeerConnection.createDataChannel(this.channelName);
-    console.log("Data channel", dc);
     this.dataChannel = dc;
     return dc;
   }
