@@ -1,33 +1,7 @@
 import {DatabaseReference, Database, ref, get, set, onValue, push} from "firebase/database";
 
-type Nullable<T> = T | null;
-
-interface Player {
-  name: string;
-  code: string;
-}
-
-interface Trial {
-  player: string;
-  code: string;
-  timestamp: string;
-}
-
-export interface SessionInfo {
-  sessionId: string;
-
-  trials: Array<Trial>;
-  players: Array<Player>;
-
-  rtcInfo: {
-    offer?: RTCSessionDescriptionInit;
-    answer?: RTCSessionDescriptionInit;
-    iceCandidates: Array<RTCPeerConnection>;
-  }
-}
-
-const peerConnectionConfig = {
-};
+import {Nullable} from "./types";
+import {Player, Trial, SessionInfo} from "./entities";
 
 
 class Session {
@@ -48,7 +22,7 @@ class Session {
 
   constructor(sessionId: string, database: Database) {
     this.sessionId = sessionId;
-    this.rtcPeerConnection = new RTCPeerConnection(peerConnectionConfig);
+    this.rtcPeerConnection = new RTCPeerConnection();
     this.dbRef = ref(database, `${this.dbRefPrefix}/${sessionId}`);
     this.offerRef = ref(database, `${this.dbRefPrefix}/${sessionId}/rtcInfo/offer`);
     this.answerRef = ref(database, `${this.dbRefPrefix}/${sessionId}/rtcInfo/answer`);
