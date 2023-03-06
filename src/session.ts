@@ -1,23 +1,33 @@
 import {DatabaseReference, Database, ref, get, set, onValue, push} from "firebase/database";
 
 import {Nullable} from "./types";
-import {Player, Trial, SessionInfo} from "./entities";
+import {Player, SessionInfo} from "./entities";
 
 
 class Session {
-  private readonly channelName = "game-channel";
+  // Data channel name
+  // This is the channel that we will be communicating with
+  // It's just like a websocket channel
+  private readonly channelId = "game-channel";
+
+  // Top level path that all session info will be stored
   private readonly dbRefPrefix: string = "session";
 
+  // The current session id
   public readonly sessionId: string;
 
   private dataChannel?: RTCDataChannel;
+
+  // The WebRTC connection we use to communicate with
   private readonly rtcPeerConnection: RTCPeerConnection;
 
+  // Database references
   private readonly dbRef: DatabaseReference;
   private readonly offerRef: DatabaseReference;
   private readonly answerRef: DatabaseReference;
   private readonly iceCandidateRef: DatabaseReference;
 
+  // Our ICE candidate descriptor
   private currentIceCandidate: Nullable<RTCIceCandidate> = null;
 
   constructor(sessionId: string, database: Database) {
@@ -31,11 +41,77 @@ class Session {
     this.listenForIceCandidates();
   }
 
+
+  /**
+   * Setup a WebRTC connection with the current players
+   */
+  public async setupConnection(): Promise<void> {
+    const sessionInfo = await this.getSessionInfo();
+
+    if (!sessionInfo || !sessionInfo.rtcInfo.offer) {
+      // This is a new connection
+      await this.createSession();
+
+      // Create a data channel for the game
+      this.createDataChannel();
+
+      // Send the session info
+      // Create an offer and save it to firebase
+      const offer = await this.rtcPeerConnection.createOffer();
+      await this.rtcPeerConnection.setLocalDescription(offer);
+
+      // Set my offer
+      await this.setSessionOffer(offer);
+
+      return new Promise((resolve, reject) => {
+        // Wait for the opponent to create an answer
+        this.listenForChanges().then(data => {
+          if (!data || !data.rtcInfo.answer) return reject("No data recorded");
+
+          // When data comes get the answer and set answer as remote description
+          this.rtcPeerConnection.setRemoteDescription(data.rtcInfo.answer)
+            .then(() => {
+              // FINISHED !!!
+              resolve();
+            });
+        });
+      });
+
+    } else {
+      // Connection already been created
+      // So we get the connection's offer and create an answer
+
+      const offer = sessionInfo.rtcInfo.offer;
+      await this.rtcPeerConnection.setRemoteDescription(offer);
+
+      const answer = await this.rtcPeerConnection.createAnswer();
+      await this.rtcPeerConnection.setLocalDescription(answer);
+
+      // Set my answer
+      await this.setSessionAnswer(answer);
+
+      return new Promise((resolve) => {
+        // Wait for when a datachannel has been created and set as my datachannel
+        this.rtcPeerConnection.addEventListener("datachannel", (e) => {
+          // FINISHED !!!
+          this.setDataChannel(e.channel);
+          resolve();
+        });
+      });
+    }
+  }
+
+  /**
+   * Synchronize all iceCandidates created within the current
+   * WebRTC session
+   */
   private async listenForIceCandidates() {
     this.rtcPeerConnection.addEventListener("icecandidate", (e) => {
       this.currentIceCandidate = e.candidate;
       push(this.iceCandidateRef, JSON.parse(JSON.stringify(e.candidate)));
     });
+
+    // Listen for changes to the iceCandidateRef and synchronize
     onValue(this.iceCandidateRef, async (snapshot) => {
       const res = snapshot.toJSON() as Nullable<Array<RTCIceCandidate>>;
       if (!res) return;
@@ -49,6 +125,9 @@ class Session {
     });
   }
 
+  /**
+   * Pull current session info from firebase
+   */
   private async getSessionInfo(): Promise<Nullable<SessionInfo>> {
     const data = await get(this.dbRef);
     const res = data.toJSON();
@@ -57,10 +136,16 @@ class Session {
     return this.formatSessionInfo(res);
   }
 
+  /**
+   * Save an offer created within the current session
+   */
   private async setSessionOffer(offer: RTCSessionDescriptionInit): Promise<void> {
     await set(this.offerRef, JSON.parse(JSON.stringify(offer)));
   }
 
+  /**
+   * Save an answer created within the current session
+   */
   private async setSessionAnswer(answer: RTCSessionDescriptionInit): Promise<void> {
     await set(this.answerRef, JSON.parse(JSON.stringify(answer)));
   }
@@ -70,7 +155,7 @@ class Session {
   }
 
   private createDataChannel(): RTCDataChannel {
-    const dc = this.rtcPeerConnection.createDataChannel(this.channelName);
+    const dc = this.rtcPeerConnection.createDataChannel(this.channelId);
     this.dataChannel = dc;
     return dc;
   }
@@ -118,66 +203,6 @@ class Session {
     await set(this.dbRef, {});
   }
 
-  public async setupConnection(): Promise<void> {
-    const sessionInfo = await this.getSessionInfo();
-
-    if (!sessionInfo || !sessionInfo.rtcInfo.offer) {
-      // This is a new connection
-
-      await this.createSession();
-
-      // Create our data channel
-      this.createDataChannel();
-
-      // Send the session info
-      // Create an offer and save it to firebase
-      const offer = await this.rtcPeerConnection.createOffer();
-      await this.rtcPeerConnection.setLocalDescription(offer);
-
-      await this.setSessionOffer(offer);
-
-      return new Promise((resolve, reject) => {
-        // Wait for the remote pair to create answer
-        this.listenForChanges().then(data => {
-
-          if (!data || !data.rtcInfo.answer) return reject("No data recorded");
-
-          // When data comes get the answer and set answer as remote description
-          this.rtcPeerConnection.setRemoteDescription(data.rtcInfo.answer)
-            .then(() => {
-              this.rtcPeerConnection.addIceCandidate();
-              // FINISHED !!!
-              resolve();
-            });
-        });
-      });
-
-    } else {
-      // Connection already been created
-      // Get connection offer and create answer
-
-      const offer = sessionInfo.rtcInfo.offer;
-      await this.rtcPeerConnection.setRemoteDescription(offer);
-
-      const answer = await this.rtcPeerConnection.createAnswer();
-      await this.rtcPeerConnection.setLocalDescription(answer);
-
-      // Send answer
-      await this.setSessionAnswer(answer);
-
-      // Get the dataChannel of the remote pair
-      this.rtcPeerConnection.addIceCandidate();
-
-      return new Promise((resolve) => {
-        this.rtcPeerConnection.addEventListener("datachannel", (e) => {
-          this.setDataChannel(e.channel);
-          resolve();
-        });
-      });
-
-    }
-
-  }
 }
 
 export default Session;
