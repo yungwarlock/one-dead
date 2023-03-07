@@ -22,5 +22,5 @@ export const database = getDatabase(app);
 export const analytics = getAnalytics(app);
 
 if (import.meta.env.DEV)
-  connectDatabaseEmulator(database, "localhost", 8081);
+  connectDatabaseEmulator(database, "localhost", 9000);
 
