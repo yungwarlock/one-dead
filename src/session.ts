@@ -5,6 +5,7 @@ import {calculateGame} from "./game";
 import {Player, SessionInfo, PredictionResult} from "./entities";
 
 
+
 type MessageType = "ready" | "prediction" | "prediction-result";
 interface Message {
   type: MessageType;

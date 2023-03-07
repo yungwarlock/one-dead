@@ -1,0 +1,26 @@
+:root {
+  --main-color: red;
+
+  --gap: 2.5rem;
+}
+
+#app-shell {
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh;
+}
+
+#heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 4rem;
+  background-color: var(--main-color);
+}
+
+
+.large {
+  height: 4rem;
+}

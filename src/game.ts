@@ -6,7 +6,6 @@ export const calculateGame = (mainCode: string, testCode: string): PredictionRes
 
   for (let i = 0; i <= testCode.length - 1; i++) {
     if (mainCode[i] == testCode[i]) {
-      console.log("mainCode found");
       deadCount += 1;
       continue;
     }
