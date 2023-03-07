@@ -4,6 +4,11 @@ export interface Player {
   code: string;
 }
 
+export type PredictionResult = {
+  deadCount: number;
+  injuredCount: number;
+}
+
 export interface Trial {
   player: string;
   code: string;

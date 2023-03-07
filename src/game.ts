@@ -1,11 +1,6 @@
+import {PredictionResult} from "./entities";
 
-export type Prediction = {
-  deadCount: number;
-  injuredCount: number;
-}
-
-export const calculateGame = (mainCode: string, testCode: string): Prediction => {
-
+export const calculateGame = (mainCode: string, testCode: string): PredictionResult => {
   let deadCount = 0;
   let injuredCount = 0;
 
