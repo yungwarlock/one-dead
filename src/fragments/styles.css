@@ -3,6 +3,11 @@
   justify-content: start;
 }
 
+#wait-for-opponent>.body {
+  display: flex;
+  justify-content: center;
+}
+
 .component {
   display: flex;
   flex-direction: column;
