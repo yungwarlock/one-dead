@@ -7,11 +7,11 @@ const NewGame = (): JSX.Element => {
   const gameStateService = useGameState();
 
   const onCreateGame = () => {
-    gameStateService.setupGame();
+    gameStateService.waitForReady();
   }
 
   const onJoinGame = () => {
-    gameStateService.setupGame();
+    gameStateService.waitForReady();
   }
 
   return (
