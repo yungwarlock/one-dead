@@ -1,20 +1,14 @@
-#create-game-component {
-  gap: var(--gap);
-
-  display: flex;
-  flex-direction: column;
-
-  padding-left: 2rem;
-  padding-right: 2rem;
-
-  margin-top: 6rem;
+#setup-game {
+  margin-top: 3rem;
+  justify-content: start;
 }
 
-#setup-game-component {
+.component {
   display: flex;
   flex-direction: column;
+  justify-content: center;
 
-  margin-top: 2rem;
+  width: 100%;
 
   padding-left: 1rem;
   padding-right: 1rem;
@@ -24,8 +18,11 @@
 
 .heading-text {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  gap: 0.5rem;
 }
 
 #code-input {

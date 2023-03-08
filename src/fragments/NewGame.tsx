@@ -15,7 +15,7 @@ const NewGame = (): JSX.Element => {
   }
 
   return (
-    <div id="create-game-component">
+    <div id="create-game" className="component">
       <button className="large" onClick={onCreateGame}>Create game</button>
       <button className="large" onClick={onJoinGame}>Join Game</button>
     </div>

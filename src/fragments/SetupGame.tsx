@@ -19,7 +19,7 @@ const SetupGame = (): JSX.Element => {
   }
 
   return (
-    <div id="setup-game-component">
+    <div id="setup-game" className="component">
 
       <div className="heading-text">
         Enter your code

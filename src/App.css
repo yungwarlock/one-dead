@@ -7,6 +7,7 @@
 #app-shell {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 
   height: 100vh;
 }
@@ -18,6 +19,11 @@
 
   min-height: 4rem;
   background-color: var(--main-color);
+}
+
+.fragments-container {
+  display: flex;
+  flex-grow: 1;
 }
 
 

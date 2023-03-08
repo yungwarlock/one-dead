@@ -31,14 +31,11 @@ const App = (): JSX.Element => {
         Heading
       </div>
 
-      <div>
-
+      <div className="fragments-container">
         {state == GameState.newGame && <NewGame />}
         {state == GameState.setupGame && <SetupGame />}
         {state == GameState.waitingForReady && <WaitingForOpponent />}
-
       </div>
-
 
     </div>
   );
