@@ -4,7 +4,6 @@ import ChangeNotifier from "./changeNotifier";
 
 
 class GameStateService extends ChangeNotifier {
-
   private _currentState: GameState;
 
   constructor(initialState = GameState.newGame) {
@@ -23,23 +22,10 @@ class GameStateService extends ChangeNotifier {
     });
   }
 
-  public setupGame() {
-    const conditions = [
-      (this._currentState < GameState.setupGame),
-      (this._currentState == GameState.newGame),
-    ];
-
-    if (!this.checkConditions(conditions))
-      throw new Error("Cannot make this change");
-    else
-      this._currentState = GameState.setupGame;
-    this.notifyListeners();
-  }
-
   public waitForReady() {
     const conditions = [
       (this._currentState < GameState.waitingForReady),
-      (this._currentState == GameState.setupGame),
+      (this._currentState == GameState.newGame),
     ];
 
     if (!this.checkConditions(conditions))
@@ -49,6 +35,18 @@ class GameStateService extends ChangeNotifier {
     this.notifyListeners();
   }
 
+  public setupGame() {
+    const conditions = [
+      (this._currentState < GameState.setupGame),
+      (this._currentState == GameState.waitingForReady),
+    ];
+
+    if (!this.checkConditions(conditions))
+      throw new Error("Cannot make this change");
+    else
+      this._currentState = GameState.setupGame;
+    this.notifyListeners();
+  }
   public startGame() {
     const conditions = [
       (this._currentState < GameState.started),
