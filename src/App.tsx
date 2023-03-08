@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 
 import {GameState} from "./types";
+import Started from "./fragments/Started";
 import NewGame from "./fragments/NewGame";
 import SetupGame from "./fragments/SetupGame";
 import {useGameState} from "./services/gameState";
@@ -11,7 +12,7 @@ import "./App.css";
 const App = (): JSX.Element => {
   const gameStateService = useGameState();
 
-  const [state, setState] = React.useState<GameState>(GameState.setupGame);
+  const [state, setState] = React.useState<GameState>(GameState.started);
 
   // useEffect(() => {
   //   const l = gameStateService.watch(() => {
@@ -33,6 +34,7 @@ const App = (): JSX.Element => {
 
       <div className="fragments-container">
         {state == GameState.newGame && <NewGame />}
+        {state == GameState.started && <Started />}
         {state == GameState.setupGame && <SetupGame />}
         {state == GameState.waitingForReady && <WaitingForOpponent />}
       </div>

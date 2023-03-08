@@ -8,6 +8,11 @@
   justify-content: center;
 }
 
+#main-game {
+  margin-top: 3rem;
+  justify-content: start;
+}
+
 .component {
   display: flex;
   flex-direction: column;
@@ -15,8 +20,8 @@
 
   width: 100%;
 
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
 
   gap: var(--gap);
 }
