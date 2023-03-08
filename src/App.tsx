@@ -12,17 +12,17 @@ import "./App.css";
 const App = (): JSX.Element => {
   const gameStateService = useGameState();
 
-  const [state, setState] = React.useState<GameState>(GameState.started);
+  const [state, setState] = React.useState<GameState>(gameStateService.currentState);
 
-  // useEffect(() => {
-  //   const l = gameStateService.watch(() => {
-  //     setState(gameStateService.currentState);
-  //   })
+  useEffect(() => {
+    const l = gameStateService.watch(() => {
+      setState(gameStateService.currentState);
+    })
 
-  //   return () => {
-  //     l.off();
-  //   }
-  // }, []);
+    return () => {
+      l.off();
+    }
+  }, []);
 
 
   return (
