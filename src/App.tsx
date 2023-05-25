@@ -1,35 +1,167 @@
 import React from "react";
-import reactLogo from "./assets/react.svg"
-import viteLogo from "/vite.svg"
-import "./App.css"
+import {customAlphabet} from "nanoid";
 
-function App(): JSX.Element {
-  const [count, setCount] = React.useState(0);
+import {Result} from "@one-dead/game/types";
+import Manager from "@one-dead/game/manager";
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+import Modal from "./components/completeModal";
+import StartModal from "./components/startModal";
+
+
+interface AppAction {
+  type: "input" | "clear",
+  value?: string;
 }
 
-export default App
+type AppState = string;
+
+const App = (): JSX.Element => {
+
+  const reducer = (state: AppState, action: AppAction): AppState => {
+    switch (action.type) {
+      case "input":
+        return addValue(action.value as string, state);
+      case "clear":
+        return "_ _ _ _";
+      default:
+        return state;
+    }
+  };
+
+  const name = generateName();
+  const manager = React.useMemo(() => new Manager(name), []);
+
+  const [started, setStarted] = React.useState<boolean>(false);
+  const [result, setResult] = React.useState<Result | null>(null);
+  const [showModal, setShowModal] = React.useState<boolean>(false);
+  const [shouldClear, setShouldClear] = React.useState<boolean>(false);
+  const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
+
+  const Button = ({children, onClick}: {children: React.ReactNode, onClick?: () => void}): JSX.Element => {
+    return (
+      <div onClick={onClick} className="bg-gray-300 hover:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
+        {children}
+      </div>
+    );
+  };
+
+  const formatResult = () => {
+    if (!result) return "";
+    const deadCount = result?.deadCount !== 0 ? `${result?.deadCount} dead` : "";
+    const injuredCount = result?.injuredCount != 0 ? `${result?.injuredCount} injured` : "";
+    return deadCount + "  " + injuredCount;
+  };
+
+  React.useEffect(() => {
+    const unSubTrial = manager.addTrialListener((result) => {
+      setResult(result);
+      setShouldClear(true);
+    });
+
+    const unSubComplete = manager.addCompleteListener((history) => {
+      console.log(history);
+      setShowModal(true);
+    });
+
+    return () => {
+      unSubTrial();
+      unSubComplete();
+    };
+  }, []);
+
+  const playTestCode = () => {
+    manager.play(state);
+  };
+
+  const enterCharacter = (char: string) => {
+    if (shouldClear) {
+      dispatch({type: "clear"});
+      setShouldClear(false);
+    }
+    dispatch({type: "input", value: char});
+  };
+
+  return (
+    <div id="app" style={{position: "fixed", height: "100%", width: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center">
+      <div className="flex justify-between items-center h-10">
+        <div>One dead</div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md bg-white px-3 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+          >
+            History
+          </button>
+        </div>
+      </div>
+
+      <StartModal show={!started} onClickClose={() => setStarted(true)} />
+      <Modal show={showModal} onClickRetry={() => console.log("Restart game")} onClickShare={() => setShowModal(false)} />
+
+      <div id="game" className="flex flex-col grow gap-4">
+        <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
+          <div className="text-8xl">{state}</div>
+          <div>{formatResult()}</div>
+        </div>
+
+        <div className="h-2/3 grid grid-cols-3 gap-4">
+          <Button onClick={() => enterCharacter("1")}>1</Button>
+          <Button onClick={() => enterCharacter("2")}>2</Button>
+          <Button onClick={() => enterCharacter("3")}>3</Button>
+          <Button onClick={() => enterCharacter("4")}>4</Button>
+          <Button onClick={() => enterCharacter("5")}>5</Button>
+          <Button onClick={() => enterCharacter("6")}>6</Button>
+          <Button onClick={() => enterCharacter("7")}>7</Button>
+          <Button onClick={() => enterCharacter("8")}>8</Button>
+          <Button onClick={() => enterCharacter("9")}>9</Button>
+          <Button onClick={() => dispatch({type: "clear"})}>Clear</Button>
+          <Button onClick={() => enterCharacter("0")}>0</Button>
+          <Button onClick={() => playTestCode()}>Enter</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const generateName = (): string => {
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  const nanoid = customAlphabet(alphabet, 16);
+
+  return nanoid();
+};
+
+const addValue = (input: string, value: string) => {
+  if (input.length !== 1) {
+    throw new Error("Input cannot be longer that one integer");
+  }
+
+  let numbers = "";
+  for (const v of value) {
+    if (v !== "_") {
+      numbers = numbers.concat(v);
+    } else {
+      break;
+    }
+  }
+
+  if (numbers.length !== 4) {
+    numbers = numbers.concat(input);
+  }
+
+  let remainder = 4 - numbers.length;
+  let spaces = remainder - 1;
+
+  while (remainder != 0) {
+    numbers = numbers.concat("_");
+    if (spaces) {
+      numbers = numbers.concat(" ");
+      spaces--;
+    }
+    remainder--;
+  }
+  return numbers;
+};
+
+
+
+export default App;
