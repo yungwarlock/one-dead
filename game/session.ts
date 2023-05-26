@@ -10,7 +10,7 @@ class Session {
 
   constructor(name: string, startTime: Date, mainCode: Code) {
     if (this.hasRepeatingCharacters(mainCode)) {
-      throw new Error("MainCode has errors");
+      throw new Error(`MainCode has errors ${mainCode}`);
     }
 
     this.name = name;
@@ -71,7 +71,7 @@ class Session {
       result,
       testCode,
       timestamp: Date.now(),
-    })
+    });
 
     return result;
   }
@@ -87,7 +87,7 @@ class Session {
       trials: this.history,
       mainCode: this.mainCode,
       startTime: this.startTime,
-    }
+    };
   }
 
 }

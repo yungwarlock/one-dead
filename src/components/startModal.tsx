@@ -1,6 +1,5 @@
 import React from "react";
 
-import {CheckIcon} from "@heroicons/react/24/solid";
 import {Dialog, Transition} from "@headlessui/react";
 
 
@@ -11,9 +10,11 @@ interface ModalProps {
 
 const StartModal = ({show, onClickClose}: ModalProps): JSX.Element => {
 
+  const ref = React.useRef(null);
+
   return (
     <Transition.Root show={show} as={React.Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClickClose}>
+      <Dialog as="div" ref={ref} initialFocus={ref} className="relative z-10" onClose={onClickClose}>
         <Transition.Child
           as={React.Fragment}
           enter="ease-out duration-300"
@@ -45,9 +46,28 @@ const StartModal = ({show, onClickClose}: ModalProps): JSX.Element => {
                         About Game
                       </Dialog.Title>
                       <div className="mt-2">
-                        <p className="text-sm text-gray-500">
-                          One dead is a strategic guessing game
-                        </p>
+                        <div className="text-sm text-gray-600">
+                          <p>
+                            One dead is a strategic guessing game. It&lsquo;s about guessing a four correctly a four
+                            digit number made by computer with least amount of tries.
+                          </p>
+
+                          <br />
+
+                          <p>
+                            The game started when computer generates and stores a 4 digit random code. This number
+                            will have no repeating digits. Then the player will try to guess that as trials.
+                            For each try a player makes, they a given two clues: Dead count and Injured count.
+                            The player wins when they get a "four dead" count.
+                          </p>
+
+                          <br />
+
+                          <p>
+                            The goal of the player is to minimize the amount of trials to make to achieve
+                            "four dead".
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

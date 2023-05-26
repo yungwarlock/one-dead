@@ -1,9 +1,14 @@
-import {IHistory, Result} from "./types";
+/* eslint-disable no-constant-condition */
+
 import Session from "./session";
+import {IHistory, Result} from "./types";
+
 
 const generateMainCode = () => {
-  return "1234";
-}
+  const code = (Math.ceil(Math.random() * 10000)).toString();
+  return code;
+};
+
 
 type Unsubscribe = () => void;
 
@@ -16,9 +21,9 @@ class Manager {
   private completeListeners: Array<(history: IHistory) => void> = [];
 
   constructor(name: string) {
-    const mainCode = generateMainCode();
     while (true) {
       try {
+        const mainCode = generateMainCode();
         this.session = new Session(name, new Date(), mainCode);
         break;
       } catch {
@@ -38,7 +43,6 @@ class Manager {
     } catch (e) {
       this.dispatchError(e as Error);
     }
-
   }
 
   public getGameHistory() {
