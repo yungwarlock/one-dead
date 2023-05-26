@@ -31,6 +31,7 @@ const App = (): JSX.Element => {
   const name = generateName();
   const manager = React.useMemo(() => new Manager(name), []);
 
+  const [error, setError] = React.useState<Error | null>(null);
   const [started, setStarted] = React.useState<boolean>(false);
   const [result, setResult] = React.useState<Result | null>(null);
   const [showModal, setShowModal] = React.useState<boolean>(false);
@@ -58,12 +59,17 @@ const App = (): JSX.Element => {
       setShouldClear(true);
     });
 
+    const unSubError = manager.addErrorListener((error) => {
+      setError(error);
+    });
+
     const unSubComplete = manager.addCompleteListener((history) => {
       console.log(history);
       setShowModal(true);
     });
 
     return () => {
+      unSubError();
       unSubTrial();
       unSubComplete();
     };
@@ -101,7 +107,7 @@ const App = (): JSX.Element => {
       <div id="game" className="flex flex-col grow gap-4">
         <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
           <div className="text-8xl">{state}</div>
-          <div>{formatResult()}</div>
+          <div>{error ? String(error) : formatResult()}</div>
         </div>
 
         <div className="h-2/3 grid grid-cols-3 gap-4">

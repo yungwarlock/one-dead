@@ -11,26 +11,47 @@ type Unsubscribe = () => void;
 class Manager {
   private readonly session: Session;
 
-  private completeListeners: Array<(history: IHistory) => void> = [];
+  private errorListeners: Array<(error: Error) => void> = [];
   private trialListeners: Array<(result: Result) => void> = [];
+  private completeListeners: Array<(history: IHistory) => void> = [];
 
   constructor(name: string) {
     const mainCode = generateMainCode();
-    this.session = new Session(name, new Date(), mainCode);
+    while (true) {
+      try {
+        this.session = new Session(name, new Date(), mainCode);
+        break;
+      } catch {
+        continue;
+      }
+    }
   }
 
   public play(testCode: string) {
-    const res = this.session.addTrial(testCode);
+    try {
+      const res = this.session.addTrial(testCode);
+      this.dispatchTrial(res);
 
-    this.dispatchTrial(res);
-
-    if (this.session.isComplete()) {
-      this.dispatchComplete();
+      if (this.session.isComplete()) {
+        this.dispatchComplete();
+      }
+    } catch (e) {
+      this.dispatchError(e as Error);
     }
+
   }
 
   public getGameHistory() {
     return this.session.getHistory();
+  }
+
+  public addErrorListener(listener: (result: Error) => void): Unsubscribe {
+    this.errorListeners.push(listener);
+    return () => {
+      this.errorListeners = this
+        .errorListeners
+        .filter((item) => item !== listener);
+    };
   }
 
   public addTrialListener(listener: (result: Result) => void): Unsubscribe {
@@ -39,7 +60,7 @@ class Manager {
       this.trialListeners = this
         .trialListeners
         .filter((item) => item !== listener);
-    }
+    };
   }
 
   public addCompleteListener(listener: (history: IHistory) => void): Unsubscribe {
@@ -48,17 +69,23 @@ class Manager {
       this.completeListeners = this
         .completeListeners
         .filter((item) => item !== listener);
+    };
+  }
+
+  private dispatchError(error: Error) {
+    for (const listener of this.errorListeners) {
+      listener(error);
     }
   }
 
   private dispatchTrial(result: Result) {
-    for (let listener of this.trialListeners) {
+    for (const listener of this.trialListeners) {
       listener(result);
     }
   }
 
   private dispatchComplete() {
-    for (let listener of this.completeListeners) {
+    for (const listener of this.completeListeners) {
       listener(this.session.getHistory());
     }
   }
