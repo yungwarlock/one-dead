@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import {initializeApp} from "firebase/app";
 import {getAnalytics} from "firebase/analytics";
-import {getMessaging, getToken} from "firebase/messaging";
+import {getMessaging, getToken, isSupported} from "firebase/messaging";
 import {getRemoteConfig, fetchAndActivate} from "firebase/remote-config";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -19,19 +19,20 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
-
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
 export const analytics = import.meta.env.PROD ? getAnalytics(app) : null;
 
-const messaging = getMessaging(app);
+isSupported().then(() => {
+  const messaging = getMessaging(app);
 
-Notification.requestPermission().then(async (permission) => {
-  if (permission == "granted") {
-    const token = await getToken(messaging, {vapidKey: import.meta.env.VITE_VAPID_KEY});
-    console.log("TOKEN: ", token);
-  }
+  Notification.requestPermission().then(async (permission) => {
+    if (permission == "granted") {
+      const token = await getToken(messaging, {vapidKey: import.meta.env.VITE_VAPID_KEY});
+      console.log("TOKEN: ", token);
+    }
+  });
 });
 
 export const config = getRemoteConfig(app);
