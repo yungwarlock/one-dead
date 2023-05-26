@@ -62,6 +62,7 @@ const App = (): JSX.Element => {
 
     const unSubError = manager.addErrorListener((error) => {
       setError(error);
+      setShouldClear(true);
     });
 
     const unSubComplete = manager.addCompleteListener((history) => {
@@ -88,6 +89,7 @@ const App = (): JSX.Element => {
   };
 
   const playTestCode = () => {
+    setError(null);
     manager?.play(state);
   };
 
