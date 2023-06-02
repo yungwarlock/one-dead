@@ -5,8 +5,7 @@ import {IHistory, Result} from "./types";
 
 
 const generateMainCode = () => {
-  const code = (Math.ceil(Math.random() * 10000)).toString();
-  return code;
+  return (Math.floor(1000 + (9999 - 1000) * Math.random())).toFixed();
 };
 
 
