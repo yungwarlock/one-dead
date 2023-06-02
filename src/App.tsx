@@ -36,6 +36,7 @@ const App = (): JSX.Element => {
 
   const [error, setError] = React.useState<Error | null>(null);
   const [started, setStarted] = React.useState<boolean>(false);
+  const [timeElapsed, setTimeElapsed] = React.useState<number>(0);
   const [result, setResult] = React.useState<Result | null>(null);
   const [showModal, setShowModal] = React.useState<boolean>(false);
   const [gameName, setGameName] = React.useState<string | null>(null);
@@ -44,20 +45,16 @@ const App = (): JSX.Element => {
 
   const manager = React.useMemo(() => gameName ? new Manager(gameName) : null, [gameName]);
 
-  const Button = ({children, onClick}: {children: React.ReactNode, onClick?: () => void}): JSX.Element => {
-    return (
-      <div onClick={onClick} className="bg-gray-300 hover:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
-        {children}
-      </div>
-    );
-  };
-
   React.useEffect(() => {
     if (!manager) return;
 
     const unSubTrial = manager.addTrialListener((result) => {
       setResult(result);
       setShouldClear(true);
+    });
+
+    const unSubTimer = manager.addTimerListener((duration) => {
+      setTimeElapsed(duration);
     });
 
     const unSubError = manager.addErrorListener((error) => {
@@ -72,6 +69,7 @@ const App = (): JSX.Element => {
 
     return () => {
       unSubError();
+      unSubTimer();
       unSubTrial();
       unSubComplete();
     };
@@ -112,6 +110,12 @@ const App = (): JSX.Element => {
     AppAnalytics.share();
   };
 
+  const computeTime = (duration: number) => {
+    const seconds = (duration % 60).toString().padStart(2, "0");
+    const minutes = (Math.floor(duration / 60) % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+
   const startGame = () => {
     setGameName(generateName());
     setStarted(true);
@@ -127,10 +131,13 @@ const App = (): JSX.Element => {
       <div className="flex justify-between items-center h-10">
         <div>One dead</div>
         <div className="flex gap-2">
+          <div className="inline-flex justify-center py-1 px-4 rounded-md ring-gray-300 ring-1 ">
+            {computeTime(timeElapsed)}
+          </div>
           {kShowHistory &&
             <button
               type="button"
-              className="inline-flex justify-center rounded-md bg-white px-3 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              className="inline-flex justify-center rounded-md px-3 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
             >
               History
             </button>
@@ -139,7 +146,7 @@ const App = (): JSX.Element => {
       </div>
 
       <StartModal show={!started} onClickClose={startGame} />
-      <Modal show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
+      <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
 
       <div id="game" className="flex flex-col grow gap-4">
         <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
@@ -165,6 +172,16 @@ const App = (): JSX.Element => {
     </div>
   );
 };
+
+
+const Button = ({children, onClick}: {children: React.ReactNode, onClick?: () => void}): JSX.Element => {
+  return (
+    <div onClick={onClick} className="bg-gray-300 hover:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
+      {children}
+    </div>
+  );
+};
+
 
 const generateName = (): string => {
   const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

@@ -1,16 +1,22 @@
 import React from "react";
 
-import {CheckIcon} from "@heroicons/react/24/solid";
 import {Dialog, Transition} from "@headlessui/react";
 
 
 interface ModalProps {
   show: boolean;
+  elapsedTime: number;
   onClickRetry: () => void;
   onClickShare: () => void;
 }
 
-const Modal = ({show, onClickShare, onClickRetry}: ModalProps): JSX.Element => {
+const Modal = ({show, elapsedTime, onClickShare, onClickRetry}: ModalProps): JSX.Element => {
+
+  const computeTime = (duration: number) => {
+    const seconds = (duration % 60).toString().padStart(2, "0");
+    const minutes = (Math.floor(duration / 60) % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
 
   return (
     <Transition.Root show={show} as={React.Fragment}>
@@ -41,8 +47,10 @@ const Modal = ({show, onClickShare, onClickRetry}: ModalProps): JSX.Element => {
               <Dialog.Panel style={{width: "23rem"}} className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <CheckIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
+                    <div className="mx-auto flex p-9 h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <Dialog.Title as="h5" className="text-xl mt-1 text-green-700 leading-6">
+                        {computeTime(elapsedTime)}
+                      </Dialog.Title>
                     </div>
                     <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                       <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
