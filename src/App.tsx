@@ -1,12 +1,10 @@
 import React from "react";
 
 import {customAlphabet} from "nanoid";
-import {getBoolean} from "firebase/remote-config";
 
 import {Result} from "@one-dead/game/types";
 import Manager from "@one-dead/game/manager";
 
-import {config} from "./firebase";
 import AppAnalytics from "./analytics";
 import Modal from "./components/completeModal";
 import StartModal from "./components/startModal";
@@ -32,7 +30,7 @@ const App = (): JSX.Element => {
     }
   };
 
-  const kShowHistory = getBoolean(config, "show_history");
+  //  const kShowHistory = getBoolean(config, "show_history");
 
   const [error, setError] = React.useState<Error | null>(null);
   const [started, setStarted] = React.useState<boolean>(false);
@@ -41,6 +39,7 @@ const App = (): JSX.Element => {
   const [showModal, setShowModal] = React.useState<boolean>(false);
   const [gameName, setGameName] = React.useState<string | null>(null);
   const [shouldClear, setShouldClear] = React.useState<boolean>(false);
+  const [showHistory, setShowHistory] = React.useState<boolean>(false);
   const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
 
   const manager = React.useMemo(() => gameName ? new Manager(gameName) : null, [gameName]);
@@ -75,8 +74,9 @@ const App = (): JSX.Element => {
     };
   }, [manager]);
 
-  const formatResult = () => {
+  const formatResult = (result: Result) => {
     if (!result) return "";
+
     if (result.deadCount == 0 && result.injuredCount == 0) {
       return "None";
     }
@@ -126,18 +126,70 @@ const App = (): JSX.Element => {
     window.location.reload();
   };
 
+  const Game = (
+    <div id="game" className="flex flex-col grow gap-4">
+      <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
+        <div className="text-8xl">{state}</div>
+        <div>{error ? String(error) : result && formatResult(result)}</div>
+      </div>
+
+      <div className="h-2/3 grid grid-cols-3 gap-4">
+        <Button onClick={() => enterCharacter("1")}>1</Button>
+        <Button onClick={() => enterCharacter("2")}>2</Button>
+        <Button onClick={() => enterCharacter("3")}>3</Button>
+        <Button onClick={() => enterCharacter("4")}>4</Button>
+        <Button onClick={() => enterCharacter("5")}>5</Button>
+        <Button onClick={() => enterCharacter("6")}>6</Button>
+        <Button onClick={() => enterCharacter("7")}>7</Button>
+        <Button onClick={() => enterCharacter("8")}>8</Button>
+        <Button onClick={() => enterCharacter("9")}>9</Button>
+        <Button onClick={() => dispatch({type: "clear"})}>Clear</Button>
+        <Button onClick={() => enterCharacter("0")}>0</Button>
+        <Button onClick={() => playTestCode()}>Enter</Button>
+      </div>
+    </div>
+  );
+
+  const History = (
+    <div id="history" className="flex flex-col grow gap-4 p-8">
+      <table className="table-auto">
+
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Code</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {manager?.getGameHistory().trials.map((item, index) => (
+            <tr key={index} className="text-center">
+              <td>{item.timestamp}</td>
+              <td>{item.testCode}</td>
+              <td>{formatResult(item.result)}</td>
+            </tr>
+          ))}
+        </tbody>
+
+      </table>
+    </div>
+  );
+
   return (
     <div id="app" style={{position: "fixed", height: "100%", width: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center">
       <div className="flex justify-between items-center h-10">
         <div>One dead</div>
         <div className="flex gap-2">
-          <div className="inline-flex justify-center py-1 px-4 rounded-md ring-gray-300 ring-1 ">
+          <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
             {computeTime(timeElapsed)}
           </div>
-          {kShowHistory &&
+
+          {true &&
             <button
               type="button"
-              className="inline-flex justify-center rounded-md px-3 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              onClick={() => setShowHistory(value => !value)}
+              className="inline-flex justify-center rounded-md px-3 py-1 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
             >
               History
             </button>
@@ -148,27 +200,9 @@ const App = (): JSX.Element => {
       <StartModal show={!started} onClickClose={startGame} />
       <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
 
-      <div id="game" className="flex flex-col grow gap-4">
-        <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
-          <div className="text-8xl">{state}</div>
-          <div>{error ? String(error) : formatResult()}</div>
-        </div>
+      {showHistory && History}
+      {!showHistory && Game}
 
-        <div className="h-2/3 grid grid-cols-3 gap-4">
-          <Button onClick={() => enterCharacter("1")}>1</Button>
-          <Button onClick={() => enterCharacter("2")}>2</Button>
-          <Button onClick={() => enterCharacter("3")}>3</Button>
-          <Button onClick={() => enterCharacter("4")}>4</Button>
-          <Button onClick={() => enterCharacter("5")}>5</Button>
-          <Button onClick={() => enterCharacter("6")}>6</Button>
-          <Button onClick={() => enterCharacter("7")}>7</Button>
-          <Button onClick={() => enterCharacter("8")}>8</Button>
-          <Button onClick={() => enterCharacter("9")}>9</Button>
-          <Button onClick={() => dispatch({type: "clear"})}>Clear</Button>
-          <Button onClick={() => enterCharacter("0")}>0</Button>
-          <Button onClick={() => playTestCode()}>Enter</Button>
-        </div>
-      </div>
     </div>
   );
 };

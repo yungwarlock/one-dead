@@ -9,7 +9,6 @@ interface ModalProps {
 }
 
 const StartModal = ({show, onClickClose}: ModalProps): JSX.Element => {
-
   const ref = React.useRef(null);
 
   return (
@@ -58,14 +57,14 @@ const StartModal = ({show, onClickClose}: ModalProps): JSX.Element => {
                             The game started when computer generates and stores a 4 digit random code. This number
                             will have no repeating digits. Then the player will try to guess that as trials.
                             For each try a player makes, they a given two clues: Dead count and Injured count.
-                            The player wins when they get a "four dead" count.
+                            The player wins when they get a &quot;four dead&quot; count.
                           </p>
 
                           <br />
 
                           <p>
                             The goal of the player is to minimize the amount of trials to make to achieve
-                            "four dead".
+                            &quot;four dead&quot;.
                           </p>
                         </div>
                       </div>

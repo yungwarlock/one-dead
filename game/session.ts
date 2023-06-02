@@ -70,7 +70,7 @@ class Session {
     this.history.push({
       result,
       testCode,
-      timestamp: Date.now(),
+      timestamp: Math.ceil((Date.now() - this.startTime.getTime()) / 1000),
     });
 
     return result;
