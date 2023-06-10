@@ -177,32 +177,34 @@ const App = (): JSX.Element => {
   );
 
   return (
-    <div id="app" style={{position: "fixed", height: "100%", width: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center">
-      <div className="flex justify-between items-center h-10">
-        <div>One dead</div>
-        <div className="flex gap-2">
-          <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
-            {computeTime(timeElapsed)}
+    <div className="flex justify-center">
+      <div id="app" style={{position: "fixed", height: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center border-gray-300 border-x-2 w-full sm:w-8/12 md:w-6/12">
+        <div className="flex justify-between items-center h-10">
+          <div>One dead</div>
+          <div className="flex gap-2">
+            <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
+              {computeTime(timeElapsed)}
+            </div>
+
+            {true &&
+              <button
+                type="button"
+                onClick={() => setShowHistory(value => !value)}
+                className="inline-flex justify-center rounded-md px-3 py-1 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              >
+                History
+              </button>
+            }
           </div>
-
-          {true &&
-            <button
-              type="button"
-              onClick={() => setShowHistory(value => !value)}
-              className="inline-flex justify-center rounded-md px-3 py-1 font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-            >
-              History
-            </button>
-          }
         </div>
+
+        <StartModal show={!started} onClickClose={startGame} />
+        <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
+
+        {showHistory && History}
+        {!showHistory && Game}
+
       </div>
-
-      <StartModal show={!started} onClickClose={startGame} />
-      <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
-
-      {showHistory && History}
-      {!showHistory && Game}
-
     </div>
   );
 };
