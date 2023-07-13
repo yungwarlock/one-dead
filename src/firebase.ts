@@ -24,26 +24,27 @@ export const app = initializeApp(firebaseConfig);
 
 export const analytics = import.meta.env.PROD ? getAnalytics(app) : null;
 
-isSupported().then(() => {
-  const messaging = getMessaging(app);
-
-  Notification.requestPermission().then(async (permission) => {
-    if (permission == "granted") {
-      const token = await getToken(messaging, {vapidKey: import.meta.env.VITE_VAPID_KEY});
-      console.log("TOKEN: ", token);
-    }
-  });
-});
-
 export const config = getRemoteConfig(app);
 
 config.defaultConfig = {
   "show_history": false,
+  "show_notifications": false,
 };
 
 fetchAndActivate(config);
 
+const showNotifications = false;
 
+if (showNotifications) {
+  isSupported().then(() => {
+    const messaging = getMessaging(app);
 
-
+    Notification.requestPermission().then(async (permission) => {
+      if (permission == "granted") {
+        const token = await getToken(messaging, {vapidKey: import.meta.env.VITE_VAPID_KEY});
+        console.log("TOKEN: ", token);
+      }
+    });
+  });
+}
 
