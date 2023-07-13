@@ -74,6 +74,51 @@ const App = (): JSX.Element => {
     };
   }, [manager]);
 
+  React.useEffect(() => {
+    if (!manager) {
+      const l = (e: KeyboardEvent) => {
+        const val = e.key;
+
+        const isEnter = val == "Enter";
+
+        if (isEnter) {
+          startGame();
+        }
+      };
+
+      document.addEventListener("keydown", l);
+
+      return () => {
+        document.removeEventListener("keydown", l);
+      };
+    }
+
+    const l = (e: KeyboardEvent) => {
+      const val = e.key;
+
+      const isEnter = val == "Enter";
+      const isNumber = !Number.isNaN(Number.parseInt(val));
+      const isBackSpace = val == "Backspace";
+      const isHistory = val == "h" || val == "H";
+
+      if (isEnter) {
+        playTestCode(state);
+      } else if (isBackSpace) {
+        clear();
+      } else if (isHistory) {
+        setShowHistory(value => !value);
+      } else if (isNumber) {
+        enterCharacter(val);
+      }
+    };
+
+    document.addEventListener("keydown", l);
+
+    return () => {
+      document.removeEventListener("keydown", l);
+    };
+  }, [manager, state, dispatch, shouldClear, showHistory, started]);
+
   const formatResult = (result: Result) => {
     if (!result) return "";
 
@@ -86,7 +131,7 @@ const App = (): JSX.Element => {
     return deadCount + "  " + injuredCount;
   };
 
-  const playTestCode = () => {
+  const playTestCode = (state: string) => {
     setError(null);
     manager?.play(state);
   };
@@ -97,6 +142,10 @@ const App = (): JSX.Element => {
       setShouldClear(false);
     }
     dispatch({type: "input", value: char});
+  };
+
+  const clear = () => {
+    dispatch({type: "clear"});
   };
 
   const shareApp = () => {
@@ -143,9 +192,9 @@ const App = (): JSX.Element => {
         <Button onClick={() => enterCharacter("7")}>7</Button>
         <Button onClick={() => enterCharacter("8")}>8</Button>
         <Button onClick={() => enterCharacter("9")}>9</Button>
-        <Button onClick={() => dispatch({type: "clear"})}>Clear</Button>
+        <Button onClick={() => clear()}>Clear</Button>
         <Button onClick={() => enterCharacter("0")}>0</Button>
-        <Button onClick={() => playTestCode()}>Enter</Button>
+        <Button onClick={() => playTestCode(state)}>Enter</Button>
       </div>
     </div>
   );
