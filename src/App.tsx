@@ -43,6 +43,8 @@ const App = (): JSX.Element => {
   const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
 
   const manager = React.useMemo(() => gameName ? new Manager(gameName) : null, [gameName]);
+  console.log("Hello");
+
 
   React.useEffect(() => {
     if (!manager) return;
@@ -170,6 +172,8 @@ const App = (): JSX.Element => {
     setStarted(true);
   };
 
+  const numOfTrials = manager?.getGameHistory().trials.length;
+
   const replayGame = () => {
     AppAnalytics.replayGame();
     window.location.reload();
@@ -232,6 +236,9 @@ const App = (): JSX.Element => {
           <div>One dead</div>
           <div className="flex gap-2">
             <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
+              {numOfTrials || 0}
+            </div>
+            <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
               {computeTime(timeElapsed)}
             </div>
 
@@ -261,7 +268,7 @@ const App = (): JSX.Element => {
 
 const Button = ({children, onClick}: {children: React.ReactNode, onClick?: () => void}): JSX.Element => {
   return (
-    <div onClick={onClick} className="bg-gray-300 hover:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
+    <div onClick={onClick} className="bg-gray-300 select-none active:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
       {children}
     </div>
   );

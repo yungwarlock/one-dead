@@ -18,24 +18,37 @@ class Session {
     this.startTime = startTime;
   }
 
-  private hasRepeatingCharacters(str: string): boolean {
-    if (str.length <= 1) {
+  private hasRepeatingCharacters(code: string): boolean {
+    if (code.length <= 1) {
       return false;
     }
 
-    const firstChar = str.charAt(0);
-    const remainingStr = str.slice(1);
+    const firstDigit = code.charAt(0);
+    const remainingDigits = code.slice(1);
 
-    if (remainingStr.includes(firstChar)) {
+    if (remainingDigits.includes(firstDigit)) {
       return true;
     }
 
-    return this.hasRepeatingCharacters(remainingStr);
+    return this.hasRepeatingCharacters(remainingDigits);
+  }
+
+  private hasNonNumeric(code: string): boolean {
+    for (const digit of code) {
+      if (Number.isNaN(Number.parseInt(digit))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private calculate(mainCode: string, testCode: string): Result {
     if (this.hasRepeatingCharacters(testCode)) {
       throw new Error("TestCode has repeating characters");
+    }
+
+    if (this.hasNonNumeric(testCode)) {
+      throw new Error("Testcode has non numeric characters");
     }
 
     const res: Result = {
