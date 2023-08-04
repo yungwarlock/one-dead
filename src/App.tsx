@@ -1,3 +1,5 @@
+/* eslint-disable indent */
+
 import React from "react";
 
 import {customAlphabet} from "nanoid";
@@ -6,13 +8,13 @@ import {Result} from "@one-dead/game/types";
 import Manager from "@one-dead/game/manager";
 
 import AppAnalytics from "./analytics";
+import {sessionRepository} from "./repository";
 import Modal from "./components/completeModal";
 import StartModal from "./components/startModal";
 
-
 interface AppAction {
-  type: "input" | "clear",
   value?: string;
+  type: "input" | "clear",
 }
 
 type AppState = string;
@@ -43,7 +45,6 @@ const App = (): JSX.Element => {
   const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
 
   const manager = React.useMemo(() => gameName ? new Manager(gameName) : null, [gameName]);
-  console.log("Hello");
 
 
   React.useEffect(() => {
@@ -64,7 +65,7 @@ const App = (): JSX.Element => {
     });
 
     const unSubComplete = manager.addCompleteListener((history) => {
-      console.log(history);
+      sessionRepository.sessions.add(history);
       setShowModal(true);
     });
 
