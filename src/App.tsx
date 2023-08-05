@@ -12,6 +12,7 @@ import {sessionRepository} from "./repository";
 import Modal from "./components/completeModal";
 import StartModal from "./components/startModal";
 import PageVisibilityService from "./services/pageVisibility";
+import MyModal from "./components/modalDialog";
 
 interface AppAction {
   value?: string;
@@ -43,6 +44,7 @@ const App = (): JSX.Element => {
   const [gameName, setGameName] = React.useState<string | null>(null);
   const [shouldClear, setShouldClear] = React.useState<boolean>(false);
   const [showHistory, setShowHistory] = React.useState<boolean>(false);
+  const [showModalDialog, setShowModalDialog] = React.useState<boolean>(false);
   const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
 
   const pageVisibility = React.useMemo(() => new PageVisibilityService(), []);
@@ -241,11 +243,21 @@ const App = (): JSX.Element => {
     </div>
   );
 
+  const startDonationFlow = () => {
+    console.log("Donation flow started");
+  };
+
   return (
     <div className="flex justify-center">
       <div id="app" style={{position: "fixed", height: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center border-gray-300 border-x-2 w-full sm:w-8/12 md:w-6/12">
         <div className="flex justify-between items-center h-10">
-          <div>One dead</div>
+          <button
+            type="button"
+            onClick={() => setShowModalDialog(value => !value)}
+            className="inline-flex justify-center rounded-md px-3 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+          >
+            One dead
+          </button>
           <div className="flex gap-2">
             <div className="inline-flex justify-center py-1 px-3 rounded-md ring-gray-300 ring-1 ">
               {numOfTrials || 0}
@@ -269,6 +281,14 @@ const App = (): JSX.Element => {
         <StartModal show={!started} onClickClose={startGame} />
         <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
 
+        <MyModal
+          show={showModalDialog}
+          onClickReset={replayGame}
+          setShow={setShowModalDialog}
+          onClickDonate={() => startDonationFlow()}
+          onClickPause={() => manager?.toggleTimer()}
+          onClickInstructions={() => setStarted(res => !res)}
+        />
         {showHistory && History}
         {!showHistory && Game}
 

@@ -34,6 +34,7 @@ class Stopwatch {
   public stop() {
     if (this.timer) {
       clearInterval(this.timer);
+      this.timer = null;
     }
   }
 
