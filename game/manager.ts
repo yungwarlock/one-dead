@@ -12,6 +12,70 @@ const generateMainCode = () => {
 type Unsubscribe = () => void;
 
 
+class Stopwatch {
+  private elapsedTime = 0;
+  private readonly interval = 1000;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  private listeners: Array<(period: number) => void> = [];
+
+
+  public start() {
+    this.timer = setInterval(() => {
+      this.elapsedTime += 1;
+      this.dispatch(this.elapsedTime);
+    }, this.interval);
+  }
+
+  public stop() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  }
+
+  public addListener(listener: (period: number) => void): Unsubscribe {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this
+        .listeners
+        .filter((item) => item !== listener);
+    };
+  }
+
+  private dispatch(period: number) {
+    for (const listener of this.listeners) {
+      listener(period);
+    }
+  }
+
+  public reset() {
+    this.elapsedTime = 0;
+  }
+
+  public getElapsedTime() {
+    return this.elapsedTime;
+  }
+
+  public pause() {
+    this.stop();
+  }
+
+  public resume() {
+    this.start();
+  }
+
+  public toggle() {
+    if (this.timer) {
+      this.stop();
+    } else {
+      this.start();
+    }
+  }
+
+}
+
+
+
 class Manager {
   private readonly startTime: Date;
   private readonly session: Session;
