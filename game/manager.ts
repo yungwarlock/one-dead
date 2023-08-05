@@ -21,6 +21,10 @@ class Stopwatch {
 
 
   public start() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+
     this.timer = setInterval(() => {
       this.elapsedTime += 1;
       this.dispatch(this.elapsedTime);

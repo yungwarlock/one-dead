@@ -11,6 +11,7 @@ import AppAnalytics from "./analytics";
 import {sessionRepository} from "./repository";
 import Modal from "./components/completeModal";
 import StartModal from "./components/startModal";
+import PageVisibilityService from "./services/pageVisibility";
 
 interface AppAction {
   value?: string;
@@ -44,6 +45,7 @@ const App = (): JSX.Element => {
   const [showHistory, setShowHistory] = React.useState<boolean>(false);
   const [state, dispatch] = React.useReducer<React.Reducer<AppState, AppAction>>(reducer, "_ _ _ _");
 
+  const pageVisibility = React.useMemo(() => new PageVisibilityService(), []);
   const manager = React.useMemo(() => gameName ? new Manager(gameName) : null, [gameName]);
 
 
@@ -53,6 +55,14 @@ const App = (): JSX.Element => {
     const unSubTrial = manager.addTrialListener((result) => {
       setResult(result);
       setShouldClear(true);
+    });
+
+    const unSubPageVisibility = pageVisibility.addVisibilityChangeListener((state) => {
+      if (state == "hidden") {
+        manager.pauseTimer();
+      } else {
+        manager.resumeTimer();
+      }
     });
 
     const unSubTimer = manager.addTimerListener((duration) => {
@@ -74,6 +84,7 @@ const App = (): JSX.Element => {
       unSubTimer();
       unSubTrial();
       unSubComplete();
+      unSubPageVisibility();
     };
   }, [manager]);
 
