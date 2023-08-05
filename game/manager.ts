@@ -80,10 +80,10 @@ class Manager {
   private readonly startTime: Date;
   private readonly session: Session;
 
+  private gameStopWatch = new Stopwatch();
   private errorListeners: Array<(error: Error) => void> = [];
   private timerListeners: Array<(period: number) => void> = [];
   private trialListeners: Array<(result: Result) => void> = [];
-  private gameTimer: ReturnType<typeof setTimeout> | null = null;
   private completeListeners: Array<(history: IHistory) => void> = [];
 
   constructor(name: string) {
@@ -102,7 +102,7 @@ class Manager {
 
   public play(testCode: string) {
     try {
-      const res = this.session.addTrial(testCode);
+      const res = this.session.addTrial(testCode, this.gameStopWatch.getElapsedTime());
       this.dispatchTrial(res);
 
       if (this.session.isComplete()) {
@@ -116,6 +116,18 @@ class Manager {
 
   public getGameHistory() {
     return this.session.getHistory();
+  }
+
+  public pauseTimer() {
+    this.gameStopWatch.pause();
+  }
+
+  public resumeTimer() {
+    this.gameStopWatch.resume();
+  }
+
+  public toggleTimer() {
+    this.gameStopWatch.toggle();
   }
 
   public addTimerListener(listener: (period: number) => void): Unsubscribe {
@@ -155,16 +167,14 @@ class Manager {
   }
 
   private startGameTimer() {
-    this.gameTimer = setInterval(() => {
-      const duration = Math.ceil((Date.now() - this.startTime.getTime()) / 1000);
-      this.dispatchTimer(duration);
-    }, 1000);
+    this.gameStopWatch.start();
+    this.gameStopWatch.addListener((period) => {
+      this.dispatchTimer(period);
+    });
   }
 
   private stopGameTimer() {
-    if (this.gameTimer) {
-      clearInterval(this.gameTimer);
-    }
+    this.gameStopWatch.stop();
   }
 
   private dispatchTimer(duration: number) {

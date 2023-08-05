@@ -73,7 +73,7 @@ class Session {
   }
 
 
-  public addTrial(testCode: Code): Result {
+  public addTrial(testCode: Code, timestamp: number): Result {
     const result = this.calculate(this.mainCode, testCode);
 
     if (result.deadCount === 4) {
@@ -83,7 +83,7 @@ class Session {
     this.history.push({
       result,
       testCode,
-      timestamp: Math.ceil((Date.now() - this.startTime.getTime()) / 1000),
+      timestamp,
     });
 
     return result;
