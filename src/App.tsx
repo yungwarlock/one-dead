@@ -256,6 +256,12 @@ const App = (): JSX.Element => {
             onClick={() => setShowModalDialog(value => !value)}
             className="inline-flex justify-center rounded-md px-3 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
           >
+            <span style={{marginRight: "8px"}}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </span>
+
             One dead
           </button>
           <div className="flex gap-2">
