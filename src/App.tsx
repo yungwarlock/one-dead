@@ -281,14 +281,15 @@ const App = (): JSX.Element => {
         <StartModal show={!started} onClickClose={startGame} />
         <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
 
-        <MyModal
+        {showModalDialog && <MyModal
           show={showModalDialog}
           onClickReset={replayGame}
           setShow={setShowModalDialog}
           onClickDonate={() => startDonationFlow()}
           onClickPause={() => manager?.toggleTimer()}
           onClickInstructions={() => setStarted(res => !res)}
-        />
+        />}
+
         {showHistory && History}
         {!showHistory && Game}
 
