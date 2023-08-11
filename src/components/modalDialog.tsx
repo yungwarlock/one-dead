@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, {Fragment} from "react";
 import {Dialog, Transition} from "@headlessui/react";
 
@@ -10,14 +12,16 @@ declare global {
 
 interface ModalDialogProps {
   show: boolean;
+  isPaused: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 
   onClickReset?: () => void;
-  onClickPause?: () => void;
+  onClickPause: () => boolean;
   onClickInstructions?: () => void;
 }
 
-const ModalDialog = ({show, setShow, onClickPause, onClickReset, onClickInstructions}: ModalDialogProps): JSX.Element => {
+const ModalDialog = ({show, isPaused, setShow, onClickPause, onClickReset, onClickInstructions}: ModalDialogProps): JSX.Element => {
+
   function closeModal() {
     setShow(false);
   }
@@ -103,13 +107,25 @@ const ModalDialog = ({show, setShow, onClickPause, onClickReset, onClickInstruct
                         </div>
                       )} />
 
-                      <Button label="Pause" onClick={onClickPause} icon={(
-                        <div style={{width: "65px", height: "65px"}}>
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" style={{width: "100%", height: "100%"}}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9v6m-4.5 0V9M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                      )} />
+                      {isPaused ? (
+                        <Button label="Play" onClick={onClickPause} icon={(
+                          <div style={{width: "65px", height: "65px"}}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" style={{width: "100%", height: "100%"}}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+                            </svg>
+                          </div>
+                        )} />
+                      ) : (
+                        <Button label="Pause" onClick={onClickPause} icon={(
+                          <div style={{width: "65px", height: "65px"}}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" style={{width: "100%", height: "100%"}}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 9v6m-4.5 0V9M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        )} />
+                      )}
+
 
 
                     </div>

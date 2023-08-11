@@ -18,6 +18,7 @@ class Stopwatch {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   private listeners: Array<(period: number) => void> = [];
+  private stateChangeListeners: Array<(state: boolean) => void> = [];
 
 
   public start() {
@@ -29,13 +30,24 @@ class Stopwatch {
       this.elapsedTime += 1;
       this.dispatch(this.elapsedTime);
     }, this.interval);
+    this.dispatchTimerState(true);
   }
 
   public stop() {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
+      this.dispatchTimerState(false);
     }
+  }
+
+  public addTimerStateListener(listener: (state: boolean) => void): Unsubscribe {
+    this.stateChangeListeners.push(listener);
+    return () => {
+      this.stateChangeListeners = this
+        .stateChangeListeners
+        .filter((item) => item !== listener);
+    };
   }
 
   public addListener(listener: (period: number) => void): Unsubscribe {
@@ -50,6 +62,12 @@ class Stopwatch {
   private dispatch(period: number) {
     for (const listener of this.listeners) {
       listener(period);
+    }
+  }
+
+  private dispatchTimerState(state: boolean) {
+    for (const listener of this.stateChangeListeners) {
+      listener(state);
     }
   }
 
@@ -69,16 +87,21 @@ class Stopwatch {
     this.start();
   }
 
-  public toggle() {
+  public isPaused() {
+    return this.timer === null;
+  }
+
+  public toggle(): boolean {
     if (this.timer) {
       this.stop();
+      return false;
     } else {
       this.start();
+      return true;
     }
   }
 
 }
-
 
 
 class Manager {
@@ -131,8 +154,12 @@ class Manager {
     this.gameStopWatch.resume();
   }
 
-  public toggleTimer() {
-    this.gameStopWatch.toggle();
+  public isPaused(): boolean {
+    return this.gameStopWatch.isPaused();
+  }
+
+  public toggleTimer(): boolean {
+    return this.gameStopWatch.toggle();
   }
 
   public addTimerListener(listener: (period: number) => void): Unsubscribe {
@@ -142,6 +169,10 @@ class Manager {
         .timerListeners
         .filter((item) => item !== listener);
     };
+  }
+
+  public addTimerStateListener(listener: (state: boolean) => void): Unsubscribe {
+    return this.gameStopWatch.addTimerStateListener(listener);
   }
 
   public addErrorListener(listener: (result: Error) => void): Unsubscribe {

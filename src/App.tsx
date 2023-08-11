@@ -1,4 +1,6 @@
-/* eslint-disable indent */
+/* eslint-disable indent  */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 
 import React from "react";
 
@@ -41,6 +43,7 @@ const App = (): JSX.Element => {
   const [timeElapsed, setTimeElapsed] = React.useState<number>(0);
   const [result, setResult] = React.useState<Result | null>(null);
   const [showModal, setShowModal] = React.useState<boolean>(false);
+  const [timerState, setTimerState] = React.useState<boolean>(false);
   const [gameName, setGameName] = React.useState<string | null>(null);
   const [shouldClear, setShouldClear] = React.useState<boolean>(false);
   const [showHistory, setShowHistory] = React.useState<boolean>(false);
@@ -67,6 +70,10 @@ const App = (): JSX.Element => {
       }
     });
 
+    const unSubTimerState = manager.addTimerStateListener((state) => {
+      setTimerState(state);
+    });
+
     const unSubTimer = manager.addTimerListener((duration) => {
       setTimeElapsed(duration);
     });
@@ -86,6 +93,7 @@ const App = (): JSX.Element => {
       unSubTimer();
       unSubTrial();
       unSubComplete();
+      unSubTimerState();
       unSubPageVisibility();
     };
   }, [manager]);
@@ -284,10 +292,11 @@ const App = (): JSX.Element => {
         <Modal elapsedTime={timeElapsed} show={showModal} onClickRetry={replayGame} onClickShare={shareApp} />
 
         {showModalDialog && <MyModal
+          isPaused={timerState}
           show={showModalDialog}
           onClickReset={replayGame}
           setShow={setShowModalDialog}
-          onClickPause={() => manager?.toggleTimer()}
+          onClickPause={() => manager!.toggleTimer()}
           onClickInstructions={() => setStarted(res => !res)}
         />}
 
