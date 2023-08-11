@@ -14,13 +14,10 @@ interface ModalDialogProps {
 
   onClickReset?: () => void;
   onClickPause?: () => void;
-  onClickDonate?: () => void;
   onClickInstructions?: () => void;
 }
 
-const ModalDialog = ({show, setShow, onClickPause, onClickReset, onClickDonate, onClickInstructions}: ModalDialogProps): JSX.Element => {
-  const donateButtonRef = React.useRef(null);
-
+const ModalDialog = ({show, setShow, onClickPause, onClickReset, onClickInstructions}: ModalDialogProps): JSX.Element => {
   function closeModal() {
     setShow(false);
   }

@@ -243,10 +243,6 @@ const App = (): JSX.Element => {
     </div>
   );
 
-  const startDonationFlow = () => {
-    console.log("Donation flow started");
-  };
-
   return (
     <div className="flex justify-center">
       <div id="app" style={{position: "fixed", height: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center border-gray-300 border-x-2 w-full sm:w-8/12 md:w-6/12">
@@ -291,7 +287,6 @@ const App = (): JSX.Element => {
           show={showModalDialog}
           onClickReset={replayGame}
           setShow={setShowModalDialog}
-          onClickDonate={() => startDonationFlow()}
           onClickPause={() => manager?.toggleTimer()}
           onClickInstructions={() => setStarted(res => !res)}
         />}
