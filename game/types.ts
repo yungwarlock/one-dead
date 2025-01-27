@@ -1,5 +1,12 @@
 export type Code = string;
 
+export interface AppAction {
+  value?: string;
+  type: "input" | "clear",
+}
+
+export type AppState = string;
+
 export interface Result {
   deadCount: number;
   injuredCount: number;

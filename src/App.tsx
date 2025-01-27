@@ -1,27 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable indent  */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 
 import React from "react";
 
-import {customAlphabet} from "nanoid";
+import { customAlphabet } from "nanoid";
 
-import {Result} from "@one-dead/game/types";
 import Manager from "@one-dead/game/manager";
+import { AppAction, AppState, Result } from "@one-dead/game/types";
 
 import AppAnalytics from "./analytics";
-import {sessionRepository} from "./repository";
+import { sessionRepository } from "./repository";
 import Modal from "./components/completeModal";
 import StartModal from "./components/startModal";
 import PageVisibilityService from "./services/pageVisibility";
 import MyModal from "./components/modalDialog";
+import Game from "./components/Game";
+import History from "./components/History";
 
-interface AppAction {
-  value?: string;
-  type: "input" | "clear",
-}
-
-type AppState = string;
 
 const App = (): JSX.Element => {
 
@@ -143,18 +140,6 @@ const App = (): JSX.Element => {
     };
   }, [manager, state, dispatch, shouldClear, showHistory, started]);
 
-  const formatResult = (result: Result) => {
-    if (!result) return "";
-
-    if (result.deadCount == 0 && result.injuredCount == 0) {
-      return "None";
-    }
-    const deadCount = result?.deadCount !== 0 ? `${result?.deadCount} dead` : "";
-    const injuredCount = result?.injuredCount != 0 ? `${result?.injuredCount} injured` : "";
-
-    return deadCount + "  " + injuredCount;
-  };
-
   const playTestCode = (state: string) => {
     setError(null);
     manager?.play(state);
@@ -162,14 +147,14 @@ const App = (): JSX.Element => {
 
   const enterCharacter = (char: string) => {
     if (shouldClear) {
-      dispatch({type: "clear"});
+      dispatch({ type: "clear" });
       setShouldClear(false);
     }
-    dispatch({type: "input", value: char});
+    dispatch({ type: "input", value: char });
   };
 
   const clear = () => {
-    dispatch({type: "clear"});
+    dispatch({ type: "clear" });
   };
 
   const shareApp = () => {
@@ -201,66 +186,33 @@ const App = (): JSX.Element => {
     window.location.reload();
   };
 
-  const Game = (
-    <div id="game" className="flex flex-col grow gap-4">
-      <div className="border-2 border-gray-300 m-1 gap-4 rounded-md h-1/3 text-center flex flex-col justify-center content-center">
-        <div className="text-8xl">{state}</div>
-        <div>{error ? String(error) : result && formatResult(result)}</div>
-      </div>
-
-      <div className="h-2/3 grid grid-cols-3 gap-4">
-        <Button onClick={() => enterCharacter("1")}>1</Button>
-        <Button onClick={() => enterCharacter("2")}>2</Button>
-        <Button onClick={() => enterCharacter("3")}>3</Button>
-        <Button onClick={() => enterCharacter("4")}>4</Button>
-        <Button onClick={() => enterCharacter("5")}>5</Button>
-        <Button onClick={() => enterCharacter("6")}>6</Button>
-        <Button onClick={() => enterCharacter("7")}>7</Button>
-        <Button onClick={() => enterCharacter("8")}>8</Button>
-        <Button onClick={() => enterCharacter("9")}>9</Button>
-        <Button onClick={() => clear()}>Clear</Button>
-        <Button onClick={() => enterCharacter("0")}>0</Button>
-        <Button onClick={() => playTestCode(state)}>Enter</Button>
-      </div>
-    </div>
-  );
-
-  const History = (
-    <div id="history" className="flex flex-col grow gap-4 p-8">
-      <table className="table-auto">
-
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Code</th>
-            <th>Result</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {manager?.getGameHistory().trials.map((item, index) => (
-            <tr key={index} className="text-center">
-              <td>{item.timestamp}</td>
-              <td>{item.testCode}</td>
-              <td>{formatResult(item.result)}</td>
-            </tr>
-          ))}
-        </tbody>
-
-      </table>
-    </div>
-  );
+  React.useEffect(() => {
+    try {
+      ((window.adsbygoogle = window.adsbygoogle || []).push({}));
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
   return (
-    <div className="flex justify-center">
-      <div id="app" style={{position: "fixed", height: "100%"}} className="flex flex-col h-full pb-3 px-2 justify-center content-center border-gray-300 border-x-2 w-full sm:w-8/12 md:w-6/12">
+    <div className="flex justify-center items-center w-screen h-screen">
+      <div className="hidden md:block h-screen flex-1">
+        <ins className="adsbygoogle"
+          style={{ display: "block" }}
+          data-ad-client="ca-pub-6676760040468778"
+          data-ad-slot="3571604024"
+          data-ad-format="auto"
+          data-full-width-responsive="true">
+        </ins>
+      </div>
+      <div id="app" className="flex flex-col h-screen pb-3 px-2 justify-center content-center border-gray-300 border-x-2 w-full sm:w-8/12 md:w-6/12">
         <div className="flex justify-between items-center h-10">
           <button
             type="button"
             onClick={() => setShowModalDialog(value => !value)}
             className="inline-flex justify-center rounded-md px-3 py-1 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
           >
-            <span style={{marginRight: "8px"}}>
+            <span style={{ marginRight: "8px" }}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
@@ -300,22 +252,47 @@ const App = (): JSX.Element => {
           onClickInstructions={() => setStarted(res => !res)}
         />}
 
-        {showHistory && History}
-        {!showHistory && Game}
+        {showHistory && (
+          <History
+            manager={manager}
+          />
+        )}
 
+        {!showHistory && (
+          <Game
+            error={error}
+            clear={clear}
+            state={state}
+            result={result}
+            playTestCode={playTestCode}
+            enterCharacter={enterCharacter}
+          />
+        )}
+        <div className="block md:hidden">
+          <ins
+            className="adsbygoogle"
+            data-ad-slot="5362934512"
+            data-ad-client="ca-pub-6676760040468778"
+            style={{ display: "inline-block", width: "100%", height: "25vh" }}
+          >
+          </ins>
+        </div>
+      </div>
+      <div className="hidden md:block h-screen flex-1">
+        <ins
+          data-ad-format="auto"
+          className="adsbygoogle"
+          data-ad-slot="7887626708"
+          style={{ display: "block" }}
+          data-full-width-responsive="true"
+          data-ad-client="ca-pub-6676760040468778"
+        >
+        </ins>
       </div>
     </div>
   );
 };
 
-
-const Button = ({children, onClick}: {children: React.ReactNode, onClick?: () => void}): JSX.Element => {
-  return (
-    <div onClick={onClick} className="bg-gray-300 select-none active:bg-gray-400 ease-in transition rounded-md flex justify-center items-center text-3xl font-extrabold">
-      {children}
-    </div>
-  );
-};
 
 
 const generateName = (): string => {
@@ -357,6 +334,12 @@ const addValue = (input: string, value: string) => {
   return numbers;
 };
 
+
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
 
 
 export default App;
