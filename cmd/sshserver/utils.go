@@ -1,84 +1,184 @@
 package main
 
 import (
-	"io"
+	"errors"
+	"fmt"
+	"one_dead/pkg/game"
+	"time"
 
+	"github.com/gdamore/tcell/v2"
+	_ "github.com/gdamore/tcell/v2/encoding"
+	"github.com/gdamore/tcell/v2/terminfo"
 	"github.com/gliderlabs/ssh"
 )
 
-const (
-	// Regular colors
-	Black   = "\033[30m"
-	Red     = "\033[31m"
-	Green   = "\033[32m"
-	Yellow  = "\033[33m"
-	Blue    = "\033[34m"
-	Magenta = "\033[35m"
-	Cyan    = "\033[36m"
-	White   = "\033[37m"
-	Brown   = "\033[33m"
-	Pink    = "\033[35m"
-	Gray    = "\033[37m"
-	Orange  = "\033[33m"
-	Purple  = "\033[35m"
-	Reset   = "\033[0m"
+func NewSessionScreen(s ssh.Session) (tcell.Screen, error) {
+	pi, ch, ok := s.Pty()
+	if !ok {
+		return nil, errors.New("no pty requested")
+	}
+	ti, err := terminfo.LookupTerminfo(pi.Term)
+	if err != nil {
+		return nil, err
+	}
+	screen, err := tcell.NewTerminfoScreenFromTtyTerminfo(&tty{
+		Session: s,
+		size:    pi.Window,
+		ch:      ch,
+	}, ti)
+	if err != nil {
+		return nil, err
+	}
+	return screen, nil
+}
 
-	// Bright colors
-	BrightBlack   = "\033[90m"
-	BrightRed     = "\033[91m"
-	BrightGreen   = "\033[92m"
-	BrightYellow  = "\033[93m"
-	BrightBlue    = "\033[94m"
-	BrightMagenta = "\033[95m"
-	BrightCyan    = "\033[96m"
-	BrightWhite   = "\033[97m"
+func simulateConnection(ui *ChatUI) {
+	// Simulate connection sequence
+	time.Sleep(500 * time.Millisecond)
 
-	// Background colors
-	BgBlack   = "\033[40m"
-	BgRed     = "\033[41m"
-	BgGreen   = "\033[42m"
-	BgYellow  = "\033[43m"
-	BgBlue    = "\033[44m"
-	BgMagenta = "\033[45m"
-	BgCyan    = "\033[46m"
-	BgWhite   = "\033[47m"
+	ui.addSystem(Message{
+		text:      "Initializing GoChat client v1.0.0...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
 
-	// Bold and underline
-	Bold      = "\033[1m"
-	Underline = "\033[4m"
+	ui.addSystem(Message{
+		text:      "Loading configuration...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
 
-	// Clear screen
-	Clear = "\033[H\033[2J"
+	ui.addSystem(Message{
+		text:      "Resolving server address...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(400 * time.Millisecond)
 
-	// Reset to default colors
-	ResetColor = "\033[39m\033[49m"
+	ui.addServer(Message{
+		text:      "Looking up chat.freenode.net...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
 
-	// Reset to default styles
-	ResetStyle = "\033[0m"
+	ui.addServer(Message{
+		text:      "Connecting to chat.freenode.net (IPv4)...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(500 * time.Millisecond)
 
-	// Reset all
-	ResetAll = "\033[0m\033[39m\033[49m"
+	ui.addServer(Message{
+		text:      "Connection established, authenticating...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
 
-	// Hide cursor
-	HideCursor = "\033[?25l"
+	ui.addWarning(Message{
+		text:      "Server using TLS/SSL encryption",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
 
-	// Show cursor
-	ShowCursor = "\033[?25h"
-)
+	ui.addServer(Message{
+		text:      "Requesting server capabilities...",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
 
-func setupScreen(s ssh.Session) {
-	io.WriteString(s, Clear)
+	ui.addSystem(Message{
+		text:      "Server supports: multi-prefix extended-join account-notify batch away-notify",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
 
-	// Top bar
-	io.WriteString(s, BgBlue+White+"  One Dead "+BgBlack+Blue+"▐"+Reset+"\n")
+	ui.addServer(Message{text: fmt.Sprintf("Logging in as %s...", ui.username), timestamp: time.Now()})
+	time.Sleep(400 * time.Millisecond)
 
-	// Main content area with border
-	io.WriteString(s, Blue+"┌─────────────────────────────────────────────┐"+Reset+"\n")
-	io.WriteString(s, Blue+"│ "+Reset+BrightCyan+"Welcome to One Dead SSH Server"+Reset+Blue+"\t\t│"+Reset+"\n")
-	io.WriteString(s, Blue+"│ "+Reset+Green+"User: "+White+s.User()+Reset+Blue+"\t│"+Reset+"\n")
-	io.WriteString(s, Blue+"│ "+Reset+Yellow+"Type 'help' for available commands"+Reset+Blue+"\t│"+Reset+"\n")
-	io.WriteString(s, Blue+"└─────────────────────────────────────────────┘"+Reset+"\n")
+	ui.addServer(Message{
+		text:      "Registration successful",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
 
-	// Status line
-	io.WriteString(s, BgBlue+White+"[Status] Connected"+BgBlack+Blue+"▐"+Reset+"\n")
+	ui.addSystem(Message{
+		text:      "Your host is chat.freenode.net, running version ircd-seven-1.1.9",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
+
+	ui.addServer(Message{
+		text:      "Welcome to the Freenode Internet Relay Chat Network",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
+
+	ui.addSystem(Message{text: fmt.Sprintf("Your username is %s and your hostname is local", ui.username), timestamp: time.Now()})
+	time.Sleep(300 * time.Millisecond)
+
+	ui.addServer(Message{
+		text:      "MOTD: Message of the day",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "--------------------",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "Welcome to GoChat IRC Network",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "Current User's Login: " + ui.username,
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "Enjoy your stay!",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "--------------------",
+		timestamp: time.Now(),
+	})
+	time.Sleep(200 * time.Millisecond)
+
+	ui.addSystem(Message{
+		text:      "End of MOTD",
+		timestamp: time.Now(),
+	})
+	time.Sleep(300 * time.Millisecond)
+
+	ui.addSystem(Message{
+		text:      "Connection complete - Start chatting!",
+		timestamp: time.Now(),
+	})
+
+	ui.addSystem(Message{
+		text:      "Enter your test code",
+		timestamp: time.Now(),
+	})
+
+	uiC := ui.C.Subscribe()
+	defer ui.C.Close(uiC)
+
+	data := <-uiC
+	fmt.Println("Code received by", ui.username, "In chatui.go")
+
+	ui.gameSession.AddPlayer(&game.Player{
+		Name: ui.username,
+		Code: game.Code(data.text),
+	})
+}
+
+// Helper functions
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
