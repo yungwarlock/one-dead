@@ -200,9 +200,14 @@ func (ui *ChatUI) drawTopBar() {
 		ui.screen.SetContent(x, 0, ' ', nil, topBarStyle)
 	}
 
-	// Format the top bar exactly as specified
-	currentTime := time.Now().UTC().Format("2006-01-02 15:04:05")
-	topBarText := fmt.Sprintf("Current Date and Time: %s", currentTime)
+	tries := 4
+	currentDuration := time.Now().UTC().Format("15:04")
+
+	topBarText := fmt.Sprintf(
+		"One Dead: A strategic guessing game. Current Tries: %d. Current Duration: %s. Play at https://one-dead.web.app",
+		tries,
+		currentDuration,
+	)
 
 	// Draw first line of the top bar
 	for x, ch := range topBarText {
