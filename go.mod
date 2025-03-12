@@ -13,10 +13,7 @@ require (
 	golang.org/x/term v0.28.0
 )
 
-require (
-	github.com/gdamore/tcell/v2 v2.8.1
-	github.com/gorilla/mux v1.8.1
-)
+require github.com/gdamore/tcell/v2 v2.8.1
 
 require (
 	github.com/gdamore/encoding v1.0.1 // indirect

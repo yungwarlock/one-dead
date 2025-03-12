@@ -21,7 +21,7 @@ type Message struct {
 
 // Update ChatUI struct to use the new Message type
 type ChatUI struct {
-	C            *pubsub.PubSub
+	C            *pubsub.PubSub[Message]
 	screen       tcell.Screen
 	messages     []Message
 	inputBuffer  string
@@ -52,7 +52,7 @@ func NewChatUI(s ssh.Session, gameSession *game.Session) (*ChatUI, error) {
 	width, _ := screen.Size()
 
 	return &ChatUI{
-		C:            pubsub.NewPubSub(),
+		C:            pubsub.NewPubSub[Message](),
 		screen:       screen,
 		messages:     []Message{},
 		inputBuffer:  "",
@@ -103,31 +103,45 @@ func (ui *ChatUI) Run() {
 	})
 
 	go func() {
-		uiC := ui.C.Subscribe("chat_message")
-		defer close(uiC)
+		gameC := ui.gameSession.Events.Subscribe()
+		defer func() {
+			ui.gameSession.Events.Close(gameC)
+			fmt.Println("Unsubscribed from player_joined")
+		}()
 
-		gameC := ui.gameSession.Events.Subscribe("player_joined")
-		defer close(gameC)
-
-		for {
-			select {
-			case <-uiC:
-				fmt.Println("Code received by", ui.username)
-				ui.addSystem(Message{
-					text:      "Code received",
-					timestamp: time.Now(),
-				})
-			case <-gameC:
-				fmt.Println("Player joined received by", ui.username)
+		for message := range gameC {
+			if message.Type == game.START {
 				ui.addServer(Message{
-					text:      "Player joined",
+					text:      "Game started",
 					timestamp: time.Now(),
 				})
+			} else if message.Type == game.END {
+				ui.addServer(Message{
+					text:      fmt.Sprintf("Game is won by %s", message.Player.Name),
+					timestamp: time.Now(),
+				})
+			} else if message.Player.Name != ui.username {
+				if message.Type == game.JOIN {
+					ui.addServer(Message{
+						text:      fmt.Sprintf("Player %s joined", message.Player.Name),
+						timestamp: time.Now(),
+					})
+				} else if message.Type == game.TRY {
+					// res
+					ui.addServer(Message{
+						text: fmt.Sprintf("[TRY][%s] %s => %d dead, %d injured",
+							message.Player.Name,
+							message.Code,
+							message.Result.Dead,
+							message.Result.Injured,
+						),
+						timestamp: time.Now(),
+					})
+				}
 			}
 		}
 	}()
 
-	// Simulate connection sequence
 	ui.draw()
 	ui.screen.Show()
 	go simulateConnection(ui)
@@ -147,10 +161,19 @@ func (ui *ChatUI) Run() {
 			case tcell.KeyEnter:
 				if ui.inputBuffer != "" {
 					timestamp := time.Now().UTC().Format("15:04:05")
+					ui.C.Publish(Message{
+						text:      ui.inputBuffer,
+						color:     tcell.ColorWhite,
+						timestamp: time.Now(),
+					})
 					ui.addMessage(fmt.Sprintf("[%s] <%s> %s", timestamp, ui.username, ui.inputBuffer), tcell.ColorWhite)
+
+					if ui.gameSession.IsStarted() {
+						ui.gameSession.AddTrial(ui.username, game.Code(ui.inputBuffer))
+					}
+
 					ui.inputBuffer = ""
 					ui.scrollOffset = 0
-					ui.C.Publish("chat_message", nil)
 				}
 			case tcell.KeyBackspace, tcell.KeyBackspace2:
 				if len(ui.inputBuffer) > 0 {

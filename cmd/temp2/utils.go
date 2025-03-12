@@ -156,16 +156,15 @@ func simulateConnection(ui *ChatUI) {
 		timestamp: time.Now(),
 	})
 
-	uiC := ui.C.Subscribe("chat_message")
-	defer close(uiC)
-	<-uiC
-	fmt.Println("Code received by", ui.username, "In chatui.go")
+	uiC := ui.C.Subscribe()
+	defer ui.C.Close(uiC)
 
-	lastMessage := ui.messages[len(ui.messages)-1]
+	data := <-uiC
+	fmt.Println("Code received by", ui.username, "In chatui.go")
 
 	ui.gameSession.AddPlayer(&game.Player{
 		Name: ui.username,
-		Code: game.Code(lastMessage.text),
+		Code: game.Code(data.text),
 	})
 }
 
