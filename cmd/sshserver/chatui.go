@@ -120,24 +120,21 @@ func (ui *ChatUI) Run() {
 					text:      fmt.Sprintf("Game is won by %s", message.Player.Name),
 					timestamp: time.Now(),
 				})
-			} else if message.Player.Name != ui.username {
-				if message.Type == game.JOIN {
-					ui.addServer(Message{
-						text:      fmt.Sprintf("Player %s joined", message.Player.Name),
-						timestamp: time.Now(),
-					})
-				} else if message.Type == game.TRY {
-					// res
-					ui.addServer(Message{
-						text: fmt.Sprintf("[TRY][%s] %s => %d dead, %d injured",
-							message.Player.Name,
-							message.Code,
-							message.Result.Dead,
-							message.Result.Injured,
-						),
-						timestamp: time.Now(),
-					})
-				}
+			} else if message.Type == game.JOIN && message.Player.Name != ui.username {
+				ui.addServer(Message{
+					text:      fmt.Sprintf("Player %s joined", message.Player.Name),
+					timestamp: time.Now(),
+				})
+			} else if message.Type == game.TRY {
+				ui.addServer(Message{
+					text: fmt.Sprintf("[TRY][%s] %s => %d dead, %d injured",
+						message.Player.Name,
+						message.Code,
+						message.Result.Dead,
+						message.Result.Injured,
+					),
+					timestamp: time.Now(),
+				})
 			}
 		}
 	}()
@@ -168,7 +165,7 @@ func (ui *ChatUI) Run() {
 					})
 					ui.addMessage(fmt.Sprintf("[%s] <%s> %s", timestamp, ui.username, ui.inputBuffer), tcell.ColorWhite)
 
-					if ui.gameSession.IsStarted() {
+					if ui.gameSession.Status == game.ACTIVE {
 						ui.gameSession.AddTrial(ui.username, game.Code(ui.inputBuffer))
 					}
 

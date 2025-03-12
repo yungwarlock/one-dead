@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+type Status string
+
+const (
+	ENDED   Status = "ended"
+	ACTIVE  Status = "active"
+	PENDING Status = "pending"
+)
+
 const (
 	TRY   string = "try"
 	END   string = "end"
@@ -32,6 +40,7 @@ type Session struct {
 
 	startTime uint16
 	endTime   uint16
+	Status    Status
 	winner    *Player
 	tries     map[uint16]*Trial
 	players   map[string]*Player
@@ -48,6 +57,7 @@ func NewSession(id uint16) *Session {
 		winner:  nil,
 		tries:   tries,
 		players: players,
+		Status:  PENDING,
 		Events:  pubsub.NewPubSub[SessionMessage](),
 	}
 }
@@ -78,10 +88,12 @@ func (s *Session) Start() {
 	}
 
 	s.startTime = uint16(time.Now().Unix())
+	s.Status = ACTIVE
 }
 
 func (s *Session) End(winner *Player) {
 	s.endTime = s.getCurrentPeriod()
+	s.Status = ENDED
 	s.Events.Publish(SessionMessage{
 		Type:   END,
 		Player: winner,
@@ -90,12 +102,8 @@ func (s *Session) End(winner *Player) {
 
 func (s *Session) AddTrial(Name string, code Code) {
 	validateCode(code)
-	if !s.IsStarted() {
+	if s.Status != ACTIVE {
 		panic("Game not started")
-	}
-
-	if s.IsEnded() {
-		panic("Game already ended")
 	}
 
 	period := s.getCurrentPeriod()
@@ -190,12 +198,4 @@ func (s *Session) IsReady() bool {
 	}
 
 	return len(allPlayers) == maxPlayers
-}
-
-func (s *Session) IsStarted() bool {
-	return s.startTime != 0
-}
-
-func (s *Session) IsEnded() bool {
-	return s.endTime != 0
 }
