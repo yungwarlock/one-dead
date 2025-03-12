@@ -97,11 +97,6 @@ func (ui *ChatUI) Run() {
 		}
 	}()
 
-	ui.addSystem(Message{
-		text:      "Game ID" + fmt.Sprint(ui.gameSession.Id),
-		timestamp: time.Now(),
-	})
-
 	go func() {
 		gameC := ui.gameSession.Events.Subscribe()
 		defer func() {
