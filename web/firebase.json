@@ -12,6 +12,10 @@
         "source": "**",
         "destination": "/index.html",
         "pre-deploy": "yarn build"
+      },
+      {
+	 "source": "/ads.txt",
+	 "destination": "/ads.txt"
       }
     ]
   },
