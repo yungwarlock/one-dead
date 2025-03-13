@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"log"
 	"one_dead/pkg/datastore"
-	"one_dead/pkg/game"
 
 	_ "github.com/gdamore/tcell/v2/encoding"
 	"github.com/gliderlabs/ssh"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
-var lobby *game.Lobby = game.NewLobby()
+var lobby *Lobby = NewLobby()
 var playerDB *datastore.PlayerDB
 
 func init() {
@@ -24,8 +23,6 @@ func init() {
 
 func main() {
 	ssh.Handle(func(sess ssh.Session) {
-		gameSession := lobby.GetFreeSession()
-
 		// fetch player info
 		player, err := playerDB.GetByName(sess.User())
 
@@ -44,6 +41,8 @@ func main() {
 
 			playerDB.Create(player)
 		}
+
+		gameSession := lobby.GetFreeSession(player)
 
 		ui, err := NewChatUI(sess, player, gameSession)
 		if err != nil {
