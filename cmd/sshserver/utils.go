@@ -129,6 +129,12 @@ func simulateConnection(ui *ChatUI) {
 	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
 	ui.addWarning(Message{text: fmt.Sprintf("Logging in as %s...", ui.username), timestamp: time.Now()})
+	ui.addStyledMessage([]TextPart{
+		{text: "Logging in as ", bold: false},
+		{text: ui.username, bold: true},
+		{text: "...", bold: false},
+	},
+		tcell.ColorLightGreen, time.Now())
 	time.Sleep(400 * time.Millisecond)
 
 	ui.addServer(Message{

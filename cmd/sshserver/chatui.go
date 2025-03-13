@@ -13,8 +13,15 @@ import (
 )
 
 // Define a new Message type to store the text and color of a message
+
+type TextPart struct {
+	text string
+	bold bool
+}
+
 type Message struct {
 	text      string
+	parts     []TextPart
 	color     tcell.Color
 	timestamp time.Time
 }
@@ -226,6 +233,21 @@ func (ui *ChatUI) addMessage(msg string, color tcell.Color) {
 	})
 }
 
+// Add a new method for styled messages
+func (ui *ChatUI) addStyledMessage(parts []TextPart, color tcell.Color, timestamp time.Time) {
+	partsWithPrefix := append([]TextPart{
+		{
+			bold: false,
+			text: fmt.Sprintf("[%s] ", timestamp.Format("15:04:05")),
+		},
+	}, parts...)
+	ui.messages = append(ui.messages, Message{
+		color:     color,
+		timestamp: time.Now(),
+		parts:     partsWithPrefix,
+	})
+}
+
 func (ui *ChatUI) draw() {
 	ui.screen.Clear()
 	width, height := ui.screen.Size()
@@ -246,11 +268,29 @@ func (ui *ChatUI) draw() {
 		msg := ui.messages[startIdx+i]
 		style := ui.currentStyle.Foreground(msg.color)
 
-		for x, ch := range msg.text {
-			if x >= width {
-				break
+		if msg.parts != nil {
+			x := 0
+			for _, part := range msg.parts {
+				style := ui.currentStyle.Foreground(msg.color)
+				if part.bold {
+					style = style.Bold(true)
+				}
+
+				for _, ch := range part.text {
+					if x >= width {
+						break
+					}
+					ui.screen.SetContent(x, i+2, ch, nil, style)
+					x++
+				}
 			}
-			ui.screen.SetContent(x, i+2, ch, nil, style)
+		} else {
+			for x, ch := range msg.text {
+				if x >= width {
+					break
+				}
+				ui.screen.SetContent(x, i+2, ch, nil, style)
+			}
 		}
 	}
 
