@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"one_dead/pkg/game"
 	"time"
 
@@ -166,7 +167,7 @@ func simulateConnection(ui *ChatUI) {
 	time.Sleep(300 * time.Millisecond)
 
 	ui.addServer(Message{
-		text:      "Adding you to a game...",
+		text:      fmt.Sprintf("Adding you to a game %d...", ui.gameSession.Id),
 		timestamp: time.Now(),
 	})
 	time.Sleep(200 * time.Millisecond)

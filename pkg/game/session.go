@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"one_dead/pkg/pubsub"
 	"time"
 )
@@ -157,9 +156,6 @@ func (s *Session) getResults(code Code, opponent Code) *Result {
 		Injured: 0,
 	}
 
-	fmt.Println("MainCode", code)
-	fmt.Println("TestCode", opponent)
-
 	for _, digit := range code {
 		mainCode = append(mainCode, string(digit))
 	}
@@ -167,9 +163,6 @@ func (s *Session) getResults(code Code, opponent Code) *Result {
 	for _, digit := range opponent {
 		testCode = append(testCode, string(digit))
 	}
-
-	fmt.Println("MainCode", mainCode)
-	fmt.Println("TestCode", testCode)
 
 	for i := 0; i < 4; i++ {
 		if testCode[i] == mainCode[i] {

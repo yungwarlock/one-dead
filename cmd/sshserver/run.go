@@ -30,7 +30,7 @@ func (ui *ChatUI) Run() {
 
 		for message := range gameC {
 			if message.Type == game.JOIN && message.Player.Name != ui.player.Name {
-				onPlayerJoined(ui)
+				onPlayerJoined(ui, message.Player)
 			} else if message.Type == game.TRY {
 				onPlaysTry(ui, &message)
 			} else if message.Type == game.START {
@@ -74,10 +74,10 @@ func (ui *ChatUI) Run() {
 	}
 }
 
-func onPlayerJoined(ui *ChatUI) {
+func onPlayerJoined(ui *ChatUI, player *game.Player) {
 	ui.addServer(Message{
-		text:      "Game started",
 		timestamp: time.Now(),
+		text:      fmt.Sprintf("%s has joined this game", player.Name),
 	})
 }
 
