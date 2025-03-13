@@ -35,6 +35,13 @@ type Result struct {
 	Injured uint16
 }
 
+type Trial struct {
+	MainCode Code
+	TestCode Code
+	Period   uint16
+	Player   *Player
+}
+
 type Session struct {
 	Id uint16
 
