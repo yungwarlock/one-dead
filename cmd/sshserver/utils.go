@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"one_dead/pkg/game"
 	"time"
 
@@ -28,7 +27,6 @@ var logo []string = []string{
 	" 888      888 888ooo888  .oP'888  888   888",
 	" 888     d88' 888    .o d8(  888  888   888",
 	"o888bood8P'   `Y8bod8P' `Y888''8o `Y8bod88P'",
-	"",
 }
 
 func NewSessionScreen(s ssh.Session) (tcell.Screen, error) {
@@ -61,8 +59,9 @@ func simulateConnection(ui *ChatUI) {
 		})
 		time.Sleep(50 * time.Millisecond)
 	}
+	time.Sleep(700 * time.Millisecond)
 
-	time.Sleep(1500 * time.Millisecond)
+	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
 	ui.addServer(Message{
 		timestamp: time.Now(),
@@ -106,7 +105,13 @@ func simulateConnection(ui *ChatUI) {
 		timestamp: time.Now(),
 		text:      "Good luck!",
 	})
+	ui.addServer(Message{
+		text:      "-------------",
+		timestamp: time.Now(),
+	})
 	time.Sleep(200 * time.Millisecond)
+
+	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
 	ui.addServer(Message{
 		timestamp: time.Now(),
@@ -118,8 +123,6 @@ func simulateConnection(ui *ChatUI) {
 		timestamp: time.Now(),
 		text:      "40 games in progress",
 	})
-	time.Sleep(300 * time.Millisecond)
-
 	ui.addServer(Message{
 		text:      "120 players online",
 		timestamp: time.Now(),
@@ -128,33 +131,26 @@ func simulateConnection(ui *ChatUI) {
 
 	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
-	ui.addWarning(Message{text: fmt.Sprintf("Logging in as %s...", ui.player.Name), timestamp: time.Now()})
 	ui.addStyledMessage([]TextPart{
 		{text: "Logging in as ", bold: false},
 		{text: ui.player.Name, bold: true},
 		{text: "...", bold: false},
 	},
 		tcell.ColorLightGreen, time.Now())
-	time.Sleep(400 * time.Millisecond)
+	time.Sleep(600 * time.Millisecond)
 
 	ui.addServer(Message{
 		timestamp: time.Now(),
 		text:      "Your Stats:",
 	})
-	time.Sleep(300 * time.Millisecond)
-
 	ui.addServer(Message{
 		text:      "Games Played: 0",
 		timestamp: time.Now(),
 	})
-	time.Sleep(200 * time.Millisecond)
-
 	ui.addServer(Message{
 		text:      "Games Won: 0",
 		timestamp: time.Now(),
 	})
-	time.Sleep(200 * time.Millisecond)
-
 	ui.addServer(Message{
 		text:      "Games Lost: 0",
 		timestamp: time.Now(),
