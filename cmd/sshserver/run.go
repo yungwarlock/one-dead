@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"one_dead/cmd/sshserver/datastore"
+	"one_dead/pkg/datastore"
 	"one_dead/pkg/game"
 	"os"
 	"time"

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"one_dead/cmd/sshserver/datastore"
+	"one_dead/pkg/datastore"
 	"one_dead/pkg/game"
 
 	_ "github.com/gdamore/tcell/v2/encoding"
