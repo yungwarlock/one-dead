@@ -74,19 +74,52 @@ func NewChatUI(s ssh.Session, player *datastore.Player, gameSession *game.Sessio
 // Helper function to add system messages with timestamp
 func (ui *ChatUI) addSystem(msg Message) {
 	timestamp := msg.timestamp.Format("15:04:05")
-	ui.addMessage(fmt.Sprintf("[%s] %s", timestamp, msg.text), tcell.ColorGray)
+
+	if msg.parts != nil {
+		partsWithPrefix := append([]TextPart{
+			{
+				bold: false,
+				text: fmt.Sprintf("%s -!- ", timestamp),
+			},
+		}, msg.parts...)
+		ui.addStyledMessage(partsWithPrefix, tcell.ColorTurquoise, msg.timestamp)
+	} else {
+		ui.addMessage(fmt.Sprintf("%s -!- %s", timestamp, msg.text), tcell.ColorTurquoise)
+	}
 }
 
 // Helper function to add server messages
 func (ui *ChatUI) addServer(msg Message) {
 	timestamp := msg.timestamp.Format("15:04:05")
-	ui.addMessage(fmt.Sprintf("[%s] * %s", timestamp, msg.text), tcell.ColorLightGreen)
+
+	if msg.parts != nil {
+		partsWithPrefix := append([]TextPart{
+			{
+				bold: false,
+				text: fmt.Sprintf("%s -!- ", timestamp),
+			},
+		}, msg.parts...)
+		ui.addStyledMessage(partsWithPrefix, tcell.ColorLightGreen, msg.timestamp)
+	} else {
+		ui.addMessage(fmt.Sprintf("%s -!- %s", timestamp, msg.text), tcell.ColorLightGreen)
+	}
 }
 
 // Helper function to add error/warning messages
 func (ui *ChatUI) addWarning(msg Message) {
 	timestamp := msg.timestamp.Format("15:04:05")
-	ui.addMessage(fmt.Sprintf("[%s] ! %s", timestamp, msg.text), tcell.ColorOrange)
+
+	if msg.parts != nil {
+		partsWithPrefix := append([]TextPart{
+			{
+				bold: false,
+				text: fmt.Sprintf("%s ! ", timestamp),
+			},
+		}, msg.parts...)
+		ui.addStyledMessage(partsWithPrefix, tcell.ColorOrange, msg.timestamp)
+	} else {
+		ui.addMessage(fmt.Sprintf("%s ! %s", timestamp, msg.text), tcell.ColorOrange)
+	}
 }
 
 func (ui *ChatUI) addMessage(msg string, color tcell.Color) {
@@ -99,16 +132,10 @@ func (ui *ChatUI) addMessage(msg string, color tcell.Color) {
 
 // Add a new method for styled messages
 func (ui *ChatUI) addStyledMessage(parts []TextPart, color tcell.Color, timestamp time.Time) {
-	partsWithPrefix := append([]TextPart{
-		{
-			bold: false,
-			text: fmt.Sprintf("[%s] ", timestamp.Format("15:04:05")),
-		},
-	}, parts...)
 	ui.messages = append(ui.messages, Message{
+		parts:     parts,
 		color:     color,
-		timestamp: time.Now(),
-		parts:     partsWithPrefix,
+		timestamp: timestamp,
 	})
 }
 
@@ -122,7 +149,7 @@ func (ui *ChatUI) drawTopBar() {
 	}
 
 	tries := 4
-	currentDuration := time.Now().UTC().Format("15:04")
+	currentDuration := time.Now().UTC().Format("15:04:05")
 
 	topBarText := fmt.Sprintf(
 		"One Dead: A strategic guessing game. Current Tries: %d. Current Duration: %s. Play at https://one-dead.web.app",

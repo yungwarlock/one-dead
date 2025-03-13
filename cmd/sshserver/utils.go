@@ -66,9 +66,13 @@ func simulateConnection(ui *ChatUI) {
 
 	ui.addServer(Message{
 		timestamp: time.Now(),
-		text:      "Welcome to One Dead: The strategic guessing game",
+		parts: []TextPart{
+			{text: "Welcome to One Dead: The strategic guessing game", bold: true},
+		},
 	})
 	time.Sleep(300 * time.Millisecond)
+
+	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
 	ui.addServer(Message{
 		text:      "How to Play:",
@@ -145,6 +149,10 @@ func simulateConnection(ui *ChatUI) {
 		text:      "Your Stats:",
 	})
 	ui.addServer(Message{
+		text:      "-------------",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
 		text:      "Games Played: 0",
 		timestamp: time.Now(),
 	})
@@ -154,6 +162,10 @@ func simulateConnection(ui *ChatUI) {
 	})
 	ui.addServer(Message{
 		text:      "Games Lost: 0",
+		timestamp: time.Now(),
+	})
+	ui.addServer(Message{
+		text:      "-------------",
 		timestamp: time.Now(),
 	})
 	time.Sleep(200 * time.Millisecond)
@@ -174,6 +186,13 @@ func simulateConnection(ui *ChatUI) {
 
 	ui.addSystem(Message{text: "", timestamp: time.Now()})
 	time.Sleep(300 * time.Millisecond)
+
+	ui.addServer(Message{
+		parts: []TextPart{
+			{text: "READY!", bold: true},
+		},
+		timestamp: time.Now(),
+	})
 
 	ui.addWarning(Message{
 		text:      "Enter your test code",
