@@ -2,17 +2,15 @@ package main
 
 import (
 	"fmt"
+	"one_dead/cmd/sshserver/datastore"
 	"one_dead/pkg/game"
 	"one_dead/pkg/pubsub"
-	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
 	_ "github.com/gdamore/tcell/v2/encoding"
 	"github.com/gliderlabs/ssh"
 )
-
-// Define a new Message type to store the text and color of a message
 
 type TextPart struct {
 	text string
@@ -35,13 +33,13 @@ type ChatUI struct {
 	inputStartX  int
 	inputStartY  int
 	currentStyle tcell.Style
-	username     string
+	player       *datastore.Player
 	startTime    time.Time
 	scrollOffset int
 	gameSession  *game.Session
 }
 
-func NewChatUI(s ssh.Session, gameSession *game.Session) (*ChatUI, error) {
+func NewChatUI(s ssh.Session, player *datastore.Player, gameSession *game.Session) (*ChatUI, error) {
 	screen, err := NewSessionScreen(s)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create screen: %v", err)
@@ -66,7 +64,7 @@ func NewChatUI(s ssh.Session, gameSession *game.Session) (*ChatUI, error) {
 		inputStartX:  0,
 		inputStartY:  width,
 		currentStyle: defaultStyle,
-		username:     s.User(),
+		player:       player,
 		startTime:    time.Now(),
 		scrollOffset: 0,
 		gameSession:  gameSession,
@@ -91,111 +89,27 @@ func (ui *ChatUI) addWarning(msg Message) {
 	ui.addMessage(fmt.Sprintf("[%s] ! %s", timestamp, msg.text), tcell.ColorOrange)
 }
 
-func (ui *ChatUI) Run() {
-	// Create a ticker for updating the top bar (updates every second)
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
+func (ui *ChatUI) addMessage(msg string, color tcell.Color) {
+	ui.messages = append(ui.messages, Message{
+		text:      msg,
+		color:     color,
+		timestamp: time.Now(),
+	})
+}
 
-	// Create a channel for the ticker
-	go func() {
-		for range ticker.C {
-			ui.draw()
-			ui.screen.Show()
-		}
-	}()
-
-	go func() {
-		gameC := ui.gameSession.Events.Subscribe()
-		defer func() {
-			ui.gameSession.Events.Close(gameC)
-			fmt.Println("Unsubscribed from player_joined")
-		}()
-
-		for message := range gameC {
-			if message.Type == game.START {
-				ui.addServer(Message{
-					text:      "Game started",
-					timestamp: time.Now(),
-				})
-			} else if message.Type == game.END {
-				ui.addServer(Message{
-					text:      fmt.Sprintf("Game is won by %s", message.Player.Name),
-					timestamp: time.Now(),
-				})
-			} else if message.Type == game.JOIN && message.Player.Name != ui.username {
-				ui.addServer(Message{
-					text:      fmt.Sprintf("Player %s joined", message.Player.Name),
-					timestamp: time.Now(),
-				})
-			} else if message.Type == game.TRY {
-				ui.addServer(Message{
-					text: fmt.Sprintf("[TRY][%s] %s => %d dead, %d injured",
-						message.Player.Name,
-						message.Code,
-						message.Result.Dead,
-						message.Result.Injured,
-					),
-					timestamp: time.Now(),
-				})
-			}
-		}
-	}()
-
-	ui.draw()
-	ui.screen.Show()
-	go simulateConnection(ui)
-
-	for {
-		ui.draw()
-		ui.screen.Show()
-
-		ev := ui.screen.PollEvent()
-
-		switch ev := ev.(type) {
-		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyCtrlC:
-				ui.screen.Fini()
-				os.Exit(0)
-			case tcell.KeyEnter:
-				if ui.inputBuffer != "" {
-					timestamp := time.Now().UTC().Format("15:04:05")
-					ui.C.Publish(Message{
-						text:      ui.inputBuffer,
-						color:     tcell.ColorWhite,
-						timestamp: time.Now(),
-					})
-					ui.addMessage(fmt.Sprintf("[%s] <%s> %s", timestamp, ui.username, ui.inputBuffer), tcell.ColorWhite)
-
-					if ui.gameSession.Status == game.ACTIVE {
-						ui.gameSession.AddTrial(ui.username, game.Code(ui.inputBuffer))
-					}
-
-					ui.inputBuffer = ""
-					ui.scrollOffset = 0
-				}
-			case tcell.KeyBackspace, tcell.KeyBackspace2:
-				if len(ui.inputBuffer) > 0 {
-					ui.inputBuffer = ui.inputBuffer[:len(ui.inputBuffer)-1]
-				}
-			case tcell.KeyPgUp:
-				_, height := ui.screen.Size()
-				maxScroll := len(ui.messages) - (height - 2)
-				if maxScroll < 0 {
-					maxScroll = 0
-				}
-				ui.scrollOffset = min(maxScroll, ui.scrollOffset+3)
-			case tcell.KeyPgDn:
-				ui.scrollOffset = max(0, ui.scrollOffset-3)
-			case tcell.KeyRune:
-				ui.inputBuffer += string(ev.Rune())
-			}
-		case *tcell.EventResize:
-			ui.screen.Sync()
-			_, height := ui.screen.Size()
-			ui.inputStartY = height - 1
-		}
-	}
+// Add a new method for styled messages
+func (ui *ChatUI) addStyledMessage(parts []TextPart, color tcell.Color, timestamp time.Time) {
+	partsWithPrefix := append([]TextPart{
+		{
+			bold: false,
+			text: fmt.Sprintf("[%s] ", timestamp.Format("15:04:05")),
+		},
+	}, parts...)
+	ui.messages = append(ui.messages, Message{
+		color:     color,
+		timestamp: time.Now(),
+		parts:     partsWithPrefix,
+	})
 }
 
 func (ui *ChatUI) drawTopBar() {
@@ -225,27 +139,40 @@ func (ui *ChatUI) drawTopBar() {
 	}
 }
 
-func (ui *ChatUI) addMessage(msg string, color tcell.Color) {
-	ui.messages = append(ui.messages, Message{
-		text:      msg,
-		color:     color,
-		timestamp: time.Now(),
-	})
-}
+func (ui *ChatUI) drawPromptBar() {
+	width, _ := ui.screen.Size()
 
-// Add a new method for styled messages
-func (ui *ChatUI) addStyledMessage(parts []TextPart, color tcell.Color, timestamp time.Time) {
-	partsWithPrefix := append([]TextPart{
-		{
-			bold: false,
-			text: fmt.Sprintf("[%s] ", timestamp.Format("15:04:05")),
-		},
-	}, parts...)
-	ui.messages = append(ui.messages, Message{
-		color:     color,
-		timestamp: time.Now(),
-		parts:     partsWithPrefix,
-	})
+	// Draw input area with colored background and prompt
+	inputStyle := tcell.StyleDefault.
+		Background(tcell.ColorDarkBlue).
+		Foreground(tcell.ColorWhite)
+
+	promptStyle := tcell.StyleDefault.
+		Background(tcell.ColorDarkBlue).
+		Foreground(tcell.ColorLightGreen).
+		Bold(true)
+
+	// Draw input background
+	for x := 0; x < width; x++ {
+		ui.screen.SetContent(x, ui.inputStartY, ' ', nil, inputStyle)
+	}
+
+	// Draw prompt
+	prompt := ">> "
+	for x, ch := range prompt {
+		ui.screen.SetContent(x, ui.inputStartY, ch, nil, promptStyle)
+	}
+
+	// Draw input text
+	for x, ch := range ui.inputBuffer {
+		if x+len(prompt) >= width {
+			break
+		}
+		ui.screen.SetContent(x+len(prompt), ui.inputStartY, ch, nil, inputStyle)
+	}
+
+	// Position cursor after the prompt
+	ui.screen.ShowCursor(len(prompt)+len(ui.inputBuffer), ui.inputStartY)
 }
 
 func (ui *ChatUI) draw() {
@@ -254,6 +181,7 @@ func (ui *ChatUI) draw() {
 
 	// Draw top bar
 	ui.drawTopBar()
+	ui.drawPromptBar()
 
 	// Calculate visible message area
 	messageArea := height - 3 // -2 for top bar, -1 for input line
@@ -293,36 +221,4 @@ func (ui *ChatUI) draw() {
 			}
 		}
 	}
-
-	// Draw input area with colored background and prompt
-	inputStyle := tcell.StyleDefault.
-		Background(tcell.ColorDarkBlue).
-		Foreground(tcell.ColorWhite)
-
-	promptStyle := tcell.StyleDefault.
-		Background(tcell.ColorDarkBlue).
-		Foreground(tcell.ColorLightGreen).
-		Bold(true)
-
-	// Draw input background
-	for x := 0; x < width; x++ {
-		ui.screen.SetContent(x, ui.inputStartY, ' ', nil, inputStyle)
-	}
-
-	// Draw prompt
-	prompt := ">> "
-	for x, ch := range prompt {
-		ui.screen.SetContent(x, ui.inputStartY, ch, nil, promptStyle)
-	}
-
-	// Draw input text
-	for x, ch := range ui.inputBuffer {
-		if x+len(prompt) >= width {
-			break
-		}
-		ui.screen.SetContent(x+len(prompt), ui.inputStartY, ch, nil, inputStyle)
-	}
-
-	// Position cursor after the prompt
-	ui.screen.ShowCursor(len(prompt)+len(ui.inputBuffer), ui.inputStartY)
 }

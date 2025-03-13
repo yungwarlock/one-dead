@@ -128,10 +128,10 @@ func simulateConnection(ui *ChatUI) {
 
 	ui.addSystem(Message{text: "", timestamp: time.Now()})
 
-	ui.addWarning(Message{text: fmt.Sprintf("Logging in as %s...", ui.username), timestamp: time.Now()})
+	ui.addWarning(Message{text: fmt.Sprintf("Logging in as %s...", ui.player.Name), timestamp: time.Now()})
 	ui.addStyledMessage([]TextPart{
 		{text: "Logging in as ", bold: false},
-		{text: ui.username, bold: true},
+		{text: ui.player.Name, bold: true},
 		{text: "...", bold: false},
 	},
 		tcell.ColorLightGreen, time.Now())
@@ -189,7 +189,7 @@ func simulateConnection(ui *ChatUI) {
 	data := <-uiC
 
 	ui.gameSession.AddPlayer(&game.Player{
-		Name: ui.username,
+		Name: ui.player.Name,
 		Code: game.Code(data.text),
 	})
 

@@ -13,7 +13,11 @@ require (
 	golang.org/x/term v0.28.0 // indirect
 )
 
-require github.com/gdamore/tcell/v2 v2.8.1
+require (
+	github.com/gdamore/tcell/v2 v2.8.1
+	github.com/matoous/go-nanoid/v2 v2.1.0
+	github.com/mattn/go-sqlite3 v1.14.24
+)
 
 require (
 	github.com/gdamore/encoding v1.0.1 // indirect

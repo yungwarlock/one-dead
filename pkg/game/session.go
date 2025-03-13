@@ -41,9 +41,9 @@ type Session struct {
 	startTime uint16
 	endTime   uint16
 	Status    Status
-	winner    *Player
-	tries     map[uint16]*Trial
-	players   map[string]*Player
+	Winner    *Player
+	Tries     map[uint16]*Trial
+	Players   map[string]*Player
 
 	Events *pubsub.PubSub[SessionMessage]
 }
@@ -54,9 +54,9 @@ func NewSession(id uint16) *Session {
 
 	return &Session{
 		Id:      id,
-		winner:  nil,
-		tries:   tries,
-		players: players,
+		Winner:  nil,
+		Tries:   tries,
+		Players: players,
 		Status:  PENDING,
 		Events:  pubsub.NewPubSub[SessionMessage](),
 	}
@@ -64,7 +64,7 @@ func NewSession(id uint16) *Session {
 
 func (s *Session) AddPlayer(player *Player) {
 	if !s.IsReady() {
-		s.players[player.Name] = player
+		s.Players[player.Name] = player
 		s.Events.Publish(SessionMessage{
 			Type:   JOIN,
 			Player: player,
@@ -107,13 +107,13 @@ func (s *Session) AddTrial(Name string, code Code) {
 	}
 
 	period := s.getCurrentPeriod()
-	player, ok := s.players[Name]
+	player, ok := s.Players[Name]
 	if !ok {
 		panic("Player not found")
 	}
 
 	var opponent *Player
-	for name, player := range s.players {
+	for name, player := range s.Players {
 		if name != Name {
 			opponent = player
 		}
@@ -121,7 +121,7 @@ func (s *Session) AddTrial(Name string, code Code) {
 
 	res := s.getResults(code, opponent.Code)
 	if res.Dead == 4 && res.Injured == 0 {
-		s.winner = player
+		s.Winner = player
 		s.End(player)
 	}
 
@@ -138,7 +138,7 @@ func (s *Session) AddTrial(Name string, code Code) {
 		Player: player,
 		Result: res,
 	})
-	s.tries[period] = trial
+	s.Tries[period] = trial
 }
 
 func (s *Session) getResults(code Code, opponent Code) *Result {
@@ -193,7 +193,7 @@ func (s *Session) IsReady() bool {
 	maxPlayers := 2
 
 	allPlayers := []*Player{}
-	for _, v := range s.players {
+	for _, v := range s.Players {
 		allPlayers = append(allPlayers, v)
 	}
 
